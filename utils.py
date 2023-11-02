@@ -120,6 +120,6 @@ def generate(prompt):
         response = chat(messages)
         response = response.content
     else:
-        logger.warn("The token size is too large, so the tail is cut off.")
+        logger.warning("The token size is too large, so the tail is cut off.")
         response = "論文の文章量が大きすぎたため、要約できませんでした。"
     return response
