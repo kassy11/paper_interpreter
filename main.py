@@ -4,7 +4,7 @@ import re
 from logging import getLogger, StreamHandler, DEBUG
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
-from util import create_prompt, generate
+import utils
 from dotenv import load_dotenv
 
 load_dotenv(verbose=True)
@@ -35,25 +35,33 @@ def respond_to_mention(event, say):
     if not url_list:
         logger.warn("User does'nt specify arxiv url.")
         say(
-            text=f"<@{user_id}> arxivのURLを指定してください。",
+            text=f"<@{user_id}> 論文のURLを指定してください。",
             thread_ts=thread_id,
             channel=channel_id,
         )
     response = ""
+    pdf_url = ""
     for url in url_list:
-        if "arxiv.org" in url:
-            prompt = create_prompt(url)
+        is_pdf = utils.is_pdf(url)
+        is_arxiv = "arxiv.org" in url
+
+        if is_arxiv and not is_pdf:
+            pdf_url = utils.get_arxiv_pdf_url(url)
+        elif is_pdf:
+            pdf_url = url
+
+        if pdf_url:
+            prompt = utils.create_prompt(pdf_url)
             response += f"<@{user_id}> {url} の要約です。\n"
-            answer = generate(prompt)
+            answer = utils.generate(prompt)
             response += f"{answer}\n\n"
             logger.info(f"Successfully generate paper summary from {url}.")
         else:
-            logger.warn("User does'nt specify arxiv url.")
-            response = f"<@{user_id}> {url} はarxivのURLではありません。\narxivのURLを指定してください。\n\n"
+            logger.warn("User does'nt specify arxiv url or paper pdf url.")
+            response = f"<@{user_id}> {url} はarxivのURLもしくは論文PDFのURLではありません。\n正しくURLを指定してください。\n\n"
     say(text=response, thread_ts=thread_id, channel=channel_id)
 
 
-# ロギング
 @app.event("message")
 def handle_message_events(body, logger):
     logger.info(body)

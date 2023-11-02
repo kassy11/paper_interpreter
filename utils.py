@@ -35,6 +35,24 @@ logger.addHandler(handler)
 logger.propagate = False
 
 
+def is_pdf(url):
+    _, ext = os.path.splitext(url)
+    if ext == ".pdf":
+        return True
+    else:
+        return False
+
+
+def get_arxiv_pdf_url(arxiv_url):
+    client = arxiv.Client()
+
+    id = _extract_id(arxiv_url)
+    search = arxiv.Search(id_list=[id])
+    results = list(client.results(search))
+    pdf_url = results[0].pdf_url
+    return pdf_url
+
+
 def _extract_id(url):
     parsed_url = urlparse(url)
     path = parsed_url.path
@@ -43,14 +61,7 @@ def _extract_id(url):
     return id
 
 
-def _read_paper(arxiv_url):
-    client = arxiv.Client()
-
-    id = _extract_id(arxiv_url)
-    search = arxiv.Search(id_list=[id])
-    results = list(client.results(search))
-    pdf_url = results[0].pdf_url
-
+def _read_paper(pdf_url):
     # PDFを一時的にダウンロード
     file_suffix = id.replace(".", "-")
     file_name = f"temp{file_suffix}.pdf"
@@ -71,9 +82,9 @@ def _read_paper(arxiv_url):
     return paper_text
 
 
-def create_prompt(arxiv_url):
+def create_prompt(pdf_url):
     logger.info("Creating prompt...")
-    paper_text = _read_paper(arxiv_url)
+    paper_text = _read_paper(pdf_url)
     with open("./format.txt") as f:
         system_prompt = f.read()
 
