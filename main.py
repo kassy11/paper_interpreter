@@ -29,12 +29,9 @@ def respond_to_mention(event, say):
             prompt = create_prompt(url)
             response += f"{url} の要約です。\n"
             answer = generate(prompt)
-            response += f"{answer}"
+            response += f"{answer}\n\n"
         else:
             response = f"{url} はarxivのURLではありません。\narxivのURLを指定してください。"
-
-        if url_size >= 2:
-            response += "-------------"
     say(response)
 
 
