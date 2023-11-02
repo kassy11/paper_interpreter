@@ -9,7 +9,3 @@ SLACK_APP_TOKEN=xapp-
 ```
 
 `python main.py`
-
-## TODO
-- [] loggingを追加
-- [] gptのトークン数のエラー処理

@@ -1,6 +1,7 @@
 import os
 from os.path import join, dirname
 import re
+from logging import getLogger, StreamHandler, DEBUG
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from util import create_prompt, generate
@@ -15,24 +16,34 @@ SLACK_APP_TOKEN = os.environ.get("SLACK_APP_TOKEN")
 
 app = App(token=SLACK_BOT_TOKEN)
 
+logger = getLogger(__name__)
+handler = StreamHandler()
+handler.setLevel(DEBUG)
+logger.setLevel(DEBUG)
+logger.addHandler(handler)
+logger.propagate = False
+
 
 @app.event("app_mention")
 def respond_to_mention(event, say):
     pattern = "https?://[\w/:%#\$&\?\(\)~\.=\+\-]+"
     url_list = re.findall(pattern, event["text"])
+    ts = event["ts"]
     if not url_list:
-        say("arxivのURLを指定してください。")
+        logger.warn("User does'nt specify arxiv url.")
+        say(text="arxivのURLを指定してください。", thread=ts)
     response = ""
-    url_size = len(url_list)
     for url in url_list:
         if "arxiv.org" in url:
             prompt = create_prompt(url)
             response += f"{url} の要約です。\n"
             answer = generate(prompt)
             response += f"{answer}\n\n"
+            logger.info(f"Successfully generate paper summary from {url}.")
         else:
-            response = f"{url} はarxivのURLではありません。\narxivのURLを指定してください。"
-    say(response)
+            logger.warn("User does'nt specify arxiv url.")
+            response = f"{url} はarxivのURLではありません。\narxivのURLを指定してください。\n\n"
+    say(text=response, thread=ts)
 
 
 # ロギング
