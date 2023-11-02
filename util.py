@@ -72,7 +72,7 @@ def _read_paper(arxiv_url):
 def create_prompt(arxiv_url):
     logger.info("Creating prompt...")
     paper_text = _read_paper(arxiv_url)
-    with open("./question_template.txt") as f:
+    with open("./format.txt") as f:
         system_prompt = f.read()
 
     prompt = f"{system_prompt}\n\n{paper_text}\n\n"
