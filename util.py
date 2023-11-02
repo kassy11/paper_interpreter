@@ -1,17 +1,25 @@
 import os
+from os.path import join, dirname
 import arxiv
 import urllib.request
 from pypdf import PdfReader
 import openai
 import os
 from urllib.parse import urlparse
+from dotenv import load_dotenv
 
 # TODO: loggingを追加
+
+load_dotenv(verbose=True)
+dotenv_path = join(dirname(__file__), ".env")
+load_dotenv(dotenv_path)
 
 # https://platform.openai.com/docs/models
 # max tokensの大きいモデルを使う
 MODELS = {"GPT3": "gpt-3.5-turbo-16k", "GPT4": "gpt-4-32k"}
 MAX_TOKENS = {"GPT3": 16000, "GPT4": 32000}
+MODEL = os.environ.get("MODEL")
+openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 
 def _extract_id(url):
@@ -56,14 +64,13 @@ def create_prompt(arxiv_url):
 
 
 def generate(prompt):
-    model_name = os.environ.get("MODEL")
     messages = [
         {"role": "system", "content": "あなたはAIに関する研究を行っている専門家です。"},
         {"role": "user", "content": prompt},
     ]
     # TODO: tiktokenでトークンサイズを調べて、GPTモデルのサイズ以上なら区切る
     response = openai.ChatCompletion.create(
-        model=MODELS[model_name],
+        model=MODELS[MODEL],
         messages=messages,
         max_tokens=1000,
         n=1,
