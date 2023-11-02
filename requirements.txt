@@ -1,0 +1,7 @@
+langchain
+openai
+slack-bolt
+python-dotenv
+arxiv
+pypdf
+black
