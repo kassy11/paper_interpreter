@@ -3,7 +3,7 @@ retry_interval=5
 
 retry_count=0
 while true; do
-  docker compose up -d && break
+  docker compose up
 
   retry_count=$((retry_count + 1))
   if [ $retry_count -eq $max_retry_count ]; then
