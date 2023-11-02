@@ -8,7 +8,6 @@ from urllib.parse import urlparse
 
 # TODO: loggingを追加
 
-
 # https://platform.openai.com/docs/models
 # max tokensの大きいモデルを使う
 MODELS = {"GPT3": "gpt-3.5-turbo-16k", "GPT4": "gpt-4-32k"}
@@ -41,7 +40,6 @@ def _read_paper(arxiv_url):
     for page in reader.pages:
         paper_text += str(page.extract_text())
     # 参考文献以降を削除
-    # TODO: アブストラクトも削除する？
     paper_text = paper_text[: paper_text.find("References")].strip()
     # 論文PDFを削除
     os.remove(file_name)
@@ -58,7 +56,6 @@ def create_prompt(arxiv_url):
 
 
 def generate(prompt):
-    # TODO: 環境変数でGPT3か4かを選ぶ
     model_name = os.environ.get("MODEL")
     messages = [
         {"role": "system", "content": "あなたはAIに関する研究を行っている専門家です。"},
