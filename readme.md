@@ -1,4 +1,4 @@
-# arxiv_interpreter
+# paper_interpreter
 
 論文を読み取り、[落合陽一形式のフォーマット](https://www.slideshare.net/Ochyai/1-ftma15#65)で要約を返してくれるSlackボット
 
