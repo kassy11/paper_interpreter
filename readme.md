@@ -1,6 +1,6 @@
 # arxiv_interpreter
 
-arxivの論文を読み取り、[落合陽一形式のフォーマット](https://www.slideshare.net/Ochyai/1-ftma15#65)で要約を返してくれるSlackボット
+論文を読み取り、[落合陽一形式のフォーマット](https://www.slideshare.net/Ochyai/1-ftma15#65)で要約を返してくれるSlackボット
 
 ## 実行方法
 - Slack APIの設定を行う

@@ -24,6 +24,7 @@ logger.addHandler(handler)
 logger.propagate = False
 
 
+@app.event("message")
 @app.event("app_mention")
 def respond_to_mention(event, say):
     pattern = "https?://[\w/:%#\$&\?\(\)~\.=\+\-]+"
@@ -60,11 +61,6 @@ def respond_to_mention(event, say):
             logger.warn("User does'nt specify arxiv url or paper pdf url.")
             response = f"<@{user_id}> {url} はarxivのURLもしくは論文PDFのURLではありません。\n正しくURLを指定してください。\n\n"
     say(text=response, thread_ts=thread_id, channel=channel_id)
-
-
-@app.event("message")
-def handle_message_events(body, logger):
-    logger.info(body)
 
 
 if __name__ == "__main__":
