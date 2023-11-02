@@ -18,7 +18,6 @@ app = App(token=SLACK_BOT_TOKEN)
 
 @app.event("app_mention")
 def respond_to_mention(event, say):
-    print(event)
     pattern = "https?://[\w/:%#\$&\?\(\)~\.=\+\-]+"
     url_list = re.findall(pattern, event["text"])
     if not url_list:
