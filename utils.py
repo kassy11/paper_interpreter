@@ -65,7 +65,7 @@ def _read_paper(pdf_url):
     # PDFを一時的にダウンロード
     pdf_file_name = os.path.basename(pdf_url)
     num = random.randint(50, 100)
-    file_name = f"tmp_{num}_{pdf_file_name}.pdf"
+    file_name = f"tmp_{num}_{pdf_file_name}"
     logger.info(f"Downloding pdf from {pdf_url}...")
     urllib.request.urlretrieve(pdf_url, file_name)
 
@@ -94,9 +94,19 @@ def create_prompt(pdf_url):
 
 
 def generate(prompt):
-    chat = ChatOpenAI(
-        model_name=MODEL_NAME[MODEL], temperature=0, max_tokens=RESPONSE_MAX_TOKENS
-    )
+    try:
+        chat = ChatOpenAI(
+            model_name=MODEL_NAME[MODEL],
+            temperature=0,
+            max_tokens=RESPONSE_MAX_TOKENS,
+            request_timeout=120,
+        )
+    except Exception as e:
+        logger.error("Failed to request to ChatGPT!")
+        logger.error(f"Exception: {str(e)}")
+        response = "ChatGPTへのリクエストが失敗しました。\n論文URLを再送してみてください。"
+        return response
+
     CHARACTER_PROMPT = "あなたはAIに関する研究を行っている専門家です。"
     messages = [
         SystemMessage(content=CHARACTER_PROMPT),

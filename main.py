@@ -34,7 +34,7 @@ def respond_to_mention(event, say):
     channel_id = event["channel"]
 
     if not url_list:
-        logger.warn("User does'nt specify arxiv url.")
+        logger.warn("User does'nt specify paper url.")
         say(
             text=f"<@{user_id}> 論文のURLを指定してください。",
             thread_ts=thread_id,
