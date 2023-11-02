@@ -63,8 +63,9 @@ def _extract_id(url):
 
 def _read_paper(pdf_url):
     # PDFを一時的にダウンロード
-    file_suffix = id.replace(".", "-")
-    file_name = f"temp{file_suffix}.pdf"
+    pdf_file_name = os.path.basename(pdf_url)
+    num = random.randint(50, 100)
+    file_name = f"tmp_{num}_{pdf_file_name}.pdf"
     logger.info(f"Downloding pdf from {pdf_url}...")
     urllib.request.urlretrieve(pdf_url, file_name)
 
