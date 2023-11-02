@@ -62,8 +62,10 @@ def _read_paper(arxiv_url):
     logger.info(f"Reading pdf text from {file_name}...")
     for page in reader.pages:
         paper_text += str(page.extract_text())
+
     # 参考文献以降を削除
-    paper_text = paper_text[: paper_text.find("References")].strip()
+    reference_pos = max(paper_text.find("References"), paper_text.find("REFERENCES"))
+    paper_text = paper_text[:reference_pos].strip()
     # 論文PDFを削除
     os.remove(file_name)
     return paper_text
