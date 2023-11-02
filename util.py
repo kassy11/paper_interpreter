@@ -54,12 +54,12 @@ def _read_paper(arxiv_url):
     # PDFを一時的にダウンロード
     file_suffix = id.replace(".", "-")
     file_name = f"temp{file_suffix}.pdf"
-    logger.info(f"downloding pdf from {pdf_url}...")
+    logger.info(f"Downloding pdf from {pdf_url}...")
     urllib.request.urlretrieve(pdf_url, file_name)
 
     reader = PdfReader(file_name)
     paper_text = ""
-    logger.info(f"reading pdf text from {file_name}...")
+    logger.info(f"Reading pdf text from {file_name}...")
     for page in reader.pages:
         paper_text += str(page.extract_text())
     # 参考文献以降を削除
@@ -70,6 +70,7 @@ def _read_paper(arxiv_url):
 
 
 def create_prompt(arxiv_url):
+    logger.info("Creating prompt...")
     paper_text = _read_paper(arxiv_url)
     with open("./question_template.txt") as f:
         system_prompt = f.read()
@@ -90,5 +91,6 @@ def generate(prompt):
     ]
 
     # TODO: tiktokenでトークンサイズを調べて、GPTモデルのサイズ以上なら区切る
+    logger.info(f"Generating summary by {MODEL_NAME[MODEL]}...")
     response = chat(messages)
     return response.content
