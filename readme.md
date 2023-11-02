@@ -13,4 +13,4 @@ SLACK_APP_TOKEN=xapp-
 ## TODO
 - loggingを追加
 - gptのトークン数のエラー処理
-- langchainに置き換える
+- スレッドで返信できるようにする

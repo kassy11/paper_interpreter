@@ -4,6 +4,8 @@ import arxiv
 import urllib.request
 from pypdf import PdfReader
 import openai
+from langchain.chat_models import ChatOpenAI
+from langchain.schema import AIMessage, HumanMessage, SystemMessage
 import os
 from urllib.parse import urlparse
 from dotenv import load_dotenv
@@ -16,7 +18,7 @@ load_dotenv(dotenv_path)
 
 # https://platform.openai.com/docs/models
 # max tokensの大きいモデルを使う
-MODELS = {"GPT3": "gpt-3.5-turbo-16k", "GPT4": "gpt-4-32k"}
+MODEL_NAME = {"GPT3": "gpt-3.5-turbo-16k", "GPT4": "gpt-4-32k"}
 MAX_TOKENS = {"GPT3": 16000, "GPT4": 32000}
 MODEL = os.environ.get("MODEL")
 openai.api_key = os.environ.get("OPENAI_API_KEY")
@@ -64,18 +66,17 @@ def create_prompt(arxiv_url):
 
 
 def generate(prompt):
-    messages = [
-        {"role": "system", "content": "あなたはAIに関する研究を行っている専門家です。"},
-        {"role": "user", "content": prompt},
-    ]
-    # TODO: tiktokenでトークンサイズを調べて、GPTモデルのサイズ以上なら区切る
-    response = openai.ChatCompletion.create(
-        model=MODELS[MODEL],
-        messages=messages,
-        max_tokens=1000,
-        n=1,
-        stop=None,
-        temperature=0.7,
-        top_p=1,
+    chat = ChatOpenAI(
+        model_name=MODEL_NAME[MODEL],
+        temperature=0,
     )
-    return response.choices[0].message.content.strip()
+
+    # OpenAI API形式のプロンプト
+    messages = [
+        SystemMessage(content="あなたはAIに関する研究を行っている専門家です。"),
+        HumanMessage(content=prompt),
+    ]
+
+    # TODO: tiktokenでトークンサイズを調べて、GPTモデルのサイズ以上なら区切る
+    response = chat(messages)
+    return response.content
