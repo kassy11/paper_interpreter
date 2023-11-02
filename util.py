@@ -14,7 +14,6 @@ from logging import getLogger, StreamHandler, DEBUG
 
 random.seed(42)
 
-# TODO: loggingを追加
 
 load_dotenv(verbose=True)
 dotenv_path = join(dirname(__file__), ".env")
@@ -23,7 +22,8 @@ load_dotenv(dotenv_path)
 # https://platform.openai.com/docs/models
 # max tokensの大きいモデルを使う
 MODEL_NAME = {"GPT3": "gpt-3.5-turbo-16k", "GPT4": "gpt-4-32k"}
-MAX_TOKENS = {"GPT3": 16000, "GPT4": 32000}
+MODEL_MAX_TOKENS = {"GPT3": 16000, "GPT4": 32000}
+RESPONSE_MAX_TOKENS = 1000
 MODEL = os.environ.get("MODEL")
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
@@ -81,16 +81,21 @@ def create_prompt(arxiv_url):
 
 def generate(prompt):
     chat = ChatOpenAI(
-        model_name=MODEL_NAME[MODEL],
-        temperature=0,
+        model_name=MODEL_NAME[MODEL], temperature=0, max_tokens=RESPONSE_MAX_TOKENS
     )
-
+    CHARACTER_PROMPT = "あなたはAIに関する研究を行っている専門家です。"
     messages = [
-        SystemMessage(content="あなたはAIに関する研究を行っている専門家です。"),
+        SystemMessage(content=CHARACTER_PROMPT),
         HumanMessage(content=prompt),
     ]
-
-    # TODO: tiktokenでトークンサイズを調べて、GPTモデルのサイズ以上なら区切る
+    # 参考：https://qiita.com/thzking/items/ae0d9012ba0699eca7a3
+    token_size = chat.get_num_tokens_from_messages(messages=messages)
+    token_limit = MODEL_MAX_TOKENS[MODEL] - RESPONSE_MAX_TOKENS
     logger.info(f"Generating summary by {MODEL_NAME[MODEL]}...")
-    response = chat(messages)
-    return response.content
+    if token_size <= token_limit:
+        response = chat(messages)
+        response = response.content
+    else:
+        logger.warn("The token size is too large, so the tail is cut off.")
+        response = "論文の文章量が大きすぎたため、要約できませんでした。"
+    return response
