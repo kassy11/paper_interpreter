@@ -1,0 +1,18 @@
+services:
+  paper_interpreter:
+    image: python:3.11
+    command: sh -c "pip install -r requirements.txt && python main.py"
+    volumes:
+      - type: bind
+        source: .
+        target: /bot
+    working_dir: /bot
+    restart: always
+    env_file:
+      - .env
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      SLACK_BOT_TOKEN: ${SLACK_BOT_TOKEN}
+      SLACK_APP_TOKEN: ${SLACK_APP_TOKEN}
+      MODEL: ${MODEL}
+    tty: true
