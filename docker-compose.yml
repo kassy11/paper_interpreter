@@ -7,7 +7,7 @@ services:
         source: .
         target: /bot
     working_dir: /bot
-    restart: always
+    restart: unless-stopped
     env_file:
       - .env
     environment:
