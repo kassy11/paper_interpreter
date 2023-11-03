@@ -12,7 +12,7 @@ MODEL=GPT3
 SLACK_BOT_TOKEN=
 SLACK_APP_TOKEN=
 ```
-- オンプレミスサーバの場合、`nohup ./deploy.sh > log.out 2> error.out &`を実行する
+- オンプレミスサーバの場合、`nohup docker compose up > log.out &`を実行する
 
 ## 注意事項
 論文全文を読み取り、トークン数の多いChatGPTモデルに入力しています.
