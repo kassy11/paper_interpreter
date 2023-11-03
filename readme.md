@@ -1,6 +1,6 @@
 # paper_interpreter
 
-論文を読み取り、[落合陽一形式のフォーマット](https://www.slideshare.net/Ochyai/1-ftma15#65)で要約を返してくれるSlackボット
+論文PDFが置いてあるURLを指定すると、その論文を読み取り、[落合陽一形式のフォーマット](https://www.slideshare.net/Ochyai/1-ftma15#65)で要約を返してくれるSlackボット
 
 <img src="./example.png" title="example">
 
@@ -16,10 +16,10 @@
 - `.env`に環境変数を格納する
   - MODELは`GPT3`か`GPT4`を選択
 ```.env
-OPEN_AI_API_KEY=
+OPEN_AI_API_KEY=xxxxx
 MODEL=GPT3
-SLACK_BOT_TOKEN=
-SLACK_APP_TOKEN=
+SLACK_BOT_TOKEN=xxxxx
+SLACK_APP_TOKEN=xxxxx
 ```
 - `docker compose up`でボットを起動する
 

@@ -24,43 +24,30 @@ def respond_to_mention(event, say):
     channel_id = event["channel"]
 
     if not url_list:
-        logger.warning("User does'nt specify paper url.")
+        logger.warning("User does'nt specify url.")
         say(
-            text=f"<@{user_id}> 論文のURLを指定してください。",
+            text=f"<@{user_id}> 論文PDFのURLを指定してください。",
             thread_ts=thread_id,
             channel=channel_id,
         )
     response = ""
-    pdf_url = ""
     for url in url_list:
-        is_pdf = paper.is_pdf(url)
-        is_arxiv = "arxiv.org" in url
+        tmp_file_name = f"tmp_{os.path.basename(url)}"
+        is_success = paper.download_pdf(url, tmp_file_name)
 
-        if is_arxiv and not is_pdf:
-            pdf_url = paper.get_arxiv_pdf_url(url)
-        elif is_pdf:
-            pdf_url = url
-
-        if pdf_url:
-            tmp_file_name = f"tmp_{os.path.basename(pdf_url)}"
-            is_success = paper.download_pdf(pdf_url, tmp_file_name)
-
-            if is_success:
-                paper_text = paper.read(tmp_file_name)
-                prompt = gpt.create_prompt(paper_text)
-                say(
-                    text="要約を生成中です。\n1~5分ほどかかります。\n",
-                    thread_ts=thread_id,
-                    channel=channel_id,
-                )
-                answer = gpt.generate(prompt)
-                response += f"<@{user_id}> {url} の要約です。\n{answer}\n\n"
-                logger.info(f"Successfully response from {url}.")
-            else:
-                response = f"{pdf_url} からの論文を読み取ることができませんでした。\n別の論文を指定してください。"
+        if is_success:
+            paper_text = paper.read(tmp_file_name)
+            prompt = gpt.create_prompt(paper_text)
+            say(
+                text="要約を生成中です。\n1~5分ほどかかります。\n",
+                thread_ts=thread_id,
+                channel=channel_id,
+            )
+            answer = gpt.generate(prompt)
+            response += f"<@{user_id}> {url} の要約です。\n{answer}\n\n"
+            logger.info(f"Successfully response from {url}.")
         else:
-            logger.warning("User does'nt specify arxiv url or paper pdf url.")
-            response = f"<@{user_id}> {url} はarxivのURLもしくは論文PDFのURLではありません。\n正しくURLを指定してください。\n\n"
+            response = f"<@{user_id}> {url} から論文を読み取ることができませんでした。\n論文PDFのURLを指定してください。"
     say(text=response, thread_ts=thread_id, channel=channel_id)
 
 
