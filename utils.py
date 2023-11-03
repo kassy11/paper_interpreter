@@ -19,8 +19,10 @@ load_dotenv(verbose=True)
 dotenv_path = join(dirname(__file__), ".env")
 load_dotenv(dotenv_path)
 
-# https://platform.openai.com/docs/models
 # max tokensの大きいモデルを使う
+# https://platform.openai.com/docs/models
+# 2023/11現在, gpt-4-32kはAPIから利用できないので注意
+# https://help.openai.com/en/articles/7102672-how-can-i-access-gpt-4
 MODEL_NAME = {"GPT3": "gpt-3.5-turbo-16k", "GPT4": "gpt-4-32k"}
 MODEL_MAX_TOKENS = {"GPT3": 16000, "GPT4": 32000}
 RESPONSE_MAX_TOKENS = 1000
@@ -79,6 +81,7 @@ def _read_paper(pdf_url):
     reference_pos = max(paper_text.find("References"), paper_text.find("REFERENCES"))
     paper_text = paper_text[:reference_pos].strip()
     # 論文PDFを削除
+    logger.info(f"Delete paper pdf from {pdf_url}.")
     os.remove(file_name)
     return paper_text
 
