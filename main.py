@@ -48,9 +48,13 @@ def respond_to_mention(event, say):
             if is_success:
                 paper_text = paper.read(tmp_file_name)
                 prompt = gpt.create_prompt(paper_text)
-                response += f"<@{user_id}> {url} の要約です。\n"
+                say(
+                    text="要約を生成中です。\n1~5分ほどかかります。\n",
+                    thread_ts=thread_id,
+                    channel=channel_id,
+                )
                 answer = gpt.generate(prompt)
-                response += f"{answer}\n\n"
+                response += f"<@{user_id}> {url} の要約です。\n{answer}\n\n"
                 logger.info(f"Successfully response from {url}.")
             else:
                 response = f"{pdf_url} からの論文を読み取ることができませんでした。\n別の論文を指定してください。"
