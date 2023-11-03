@@ -101,7 +101,7 @@ def generate(prompt):
         model_name=MODEL_NAME[MODEL],
         temperature=0,
         max_tokens=RESPONSE_MAX_TOKENS,
-        request_timeout=20,
+        request_timeout=600,  # 10分回答が返ってこなければタイムアウト
     )
 
     CHARACTER_PROMPT = "あなたはAIに関する研究を行っている専門家です。"
@@ -124,7 +124,7 @@ def generate(prompt):
         except Exception as e:
             logger.error("Failed to request to ChatGPT!")
             logger.error(f"Exception: {str(e)}")
-            response = "ChatGPTへのリクエストが失敗しました。\nOpenAI APIのRateLimitに引っかかっている可能性があるため、少し待ってから論文URLを再送してみてください。"
+            response = "ChatGPTへのリクエストが失敗しました。\nタイムアウトになっているか、OpenAI APIのRateLimitに引っかかっている可能性があります。少し待ってから論文URLを再送してみてください。"
     else:
         logger.warning("The token size is too large, so the tail is cut off.")
         response = "論文の文章量が大きすぎたため、要約できませんでした。"
