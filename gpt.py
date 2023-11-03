@@ -14,6 +14,7 @@ MODEL_NAME = {"GPT3": "gpt-3.5-turbo-16k", "GPT4": "gpt-4-32k"}
 MODEL_MAX_TOKENS = {"GPT3": 16000, "GPT4": 32000}
 RESPONSE_MAX_TOKENS = 1000
 MODEL = os.environ.get("MODEL")
+REQUEST_TIMEOUT = 600
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 
@@ -31,7 +32,7 @@ def generate(prompt):
         model_name=MODEL_NAME[MODEL],
         temperature=0,
         max_tokens=RESPONSE_MAX_TOKENS,
-        request_timeout=600,  # 10分回答が返ってこなければタイムアウト
+        request_timeout=REQUEST_TIMEOUT,
     )
 
     CHARACTER_PROMPT = "あなたはAIに関する研究を行っている専門家です。"
