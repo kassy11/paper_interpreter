@@ -56,7 +56,7 @@ def respond_to_mention(event, say):
             response += f"<@{user_id}> {url} の要約です。\n"
             answer = utils.generate(prompt)
             response += f"{answer}\n\n"
-            logger.info(f"Successfully generate paper summary from {url}.")
+            logger.info(f"Successfully response from {url}.")
         else:
             logger.warning("User does'nt specify arxiv url or paper pdf url.")
             response = f"<@{user_id}> {url} はarxivのURLもしくは論文PDFのURLではありません。\n正しくURLを指定してください。\n\n"

@@ -94,31 +94,34 @@ def create_prompt(pdf_url):
 
 
 def generate(prompt):
-    try:
-        chat = ChatOpenAI(
-            model_name=MODEL_NAME[MODEL],
-            temperature=0,
-            max_tokens=RESPONSE_MAX_TOKENS,
-            request_timeout=120,
-        )
-    except Exception as e:
-        logger.error("Failed to request to ChatGPT!")
-        logger.error(f"Exception: {str(e)}")
-        response = "ChatGPTへのリクエストが失敗しました。\n論文URLを再送してみてください。"
-        return response
+    chat = ChatOpenAI(
+        model_name=MODEL_NAME[MODEL],
+        temperature=0,
+        max_tokens=RESPONSE_MAX_TOKENS,
+        request_timeout=20,
+    )
 
     CHARACTER_PROMPT = "あなたはAIに関する研究を行っている専門家です。"
     messages = [
         SystemMessage(content=CHARACTER_PROMPT),
         HumanMessage(content=prompt),
     ]
-    # 参考：https://qiita.com/thzking/items/ae0d9012ba0699eca7a3
+
     token_size = chat.get_num_tokens_from_messages(messages=messages)
     token_limit = MODEL_MAX_TOKENS[MODEL] - RESPONSE_MAX_TOKENS
+
     logger.info(f"Generating summary by {MODEL_NAME[MODEL]}...")
     if token_size <= token_limit:
-        response = chat(messages)
-        response = response.content
+        logger.info(
+            f"The token size of the input to {MODEL_NAME[MODEL]} is {token_size}."
+        )
+        try:
+            response = chat(messages)
+            response = response.content
+        except Exception as e:
+            logger.error("Failed to request to ChatGPT!")
+            logger.error(f"Exception: {str(e)}")
+            response = "ChatGPTへのリクエストが失敗しました。\nOpenAI APIのRateLimitに引っかかっている可能性があるため、少し待ってから論文URLを再送してみてください。"
     else:
         logger.warning("The token size is too large, so the tail is cut off.")
         response = "論文の文章量が大きすぎたため、要約できませんでした。"
