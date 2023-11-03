@@ -50,7 +50,9 @@ def download_pdf(pdf_url, tmp_file_name):
     is_success = True
     logger.info(f"Downloding pdf from {pdf_url}...")
     try:
-        urllib.request.urlretrieve(pdf_url, tmp_file_name)
+        with urllib.request.urlopen(pdf_url) as web_file:
+            with open(tmp_file_name, "wb") as local_file:
+                local_file.write(web_file.read())
     except Exception as e:
         logger.warning(f"Failed to download pdf from {pdf_url}.")
         logger.warning(f"Exception: {str(e)}")
