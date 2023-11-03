@@ -1,19 +1,10 @@
-import os
-from os.path import join, dirname
-import arxiv
-import urllib.request
-from pypdf import PdfReader
 import openai
 from langchain.chat_models import ChatOpenAI
 from langchain.schema import AIMessage, HumanMessage, SystemMessage
-import os
-from urllib.parse import urlparse
 from dotenv import load_dotenv
-import random
+import os
+from os.path import join, dirname
 from logging import getLogger, StreamHandler, DEBUG
-
-random.seed(42)
-
 
 load_dotenv(verbose=True)
 dotenv_path = join(dirname(__file__), ".env")
@@ -37,58 +28,8 @@ logger.addHandler(handler)
 logger.propagate = False
 
 
-def is_pdf(url):
-    _, ext = os.path.splitext(url)
-    if ext == ".pdf":
-        return True
-    else:
-        return False
-
-
-def get_arxiv_pdf_url(arxiv_url):
-    client = arxiv.Client()
-
-    id = _extract_id(arxiv_url)
-    search = arxiv.Search(id_list=[id])
-    results = list(client.results(search))
-    pdf_url = results[0].pdf_url
-    return pdf_url
-
-
-def _extract_id(url):
-    parsed_url = urlparse(url)
-    path = parsed_url.path
-    directories = path.split("/")
-    id = directories[-1]
-    return id
-
-
-def _read_paper(pdf_url):
-    # PDFを一時的にダウンロード
-    pdf_file_name = os.path.basename(pdf_url)
-    num = random.randint(50, 100)
-    file_name = f"tmp_{num}_{pdf_file_name}"
-    logger.info(f"Downloding pdf from {pdf_url}...")
-    urllib.request.urlretrieve(pdf_url, file_name)
-
-    reader = PdfReader(file_name)
-    paper_text = ""
-    logger.info(f"Reading pdf text from {file_name}...")
-    for page in reader.pages:
-        paper_text += str(page.extract_text())
-
-    # 参考文献以降を削除
-    reference_pos = max(paper_text.find("References"), paper_text.find("REFERENCES"))
-    paper_text = paper_text[:reference_pos].strip()
-    # 論文PDFを削除
-    logger.info(f"Delete paper pdf from {pdf_url}.")
-    os.remove(file_name)
-    return paper_text
-
-
-def create_prompt(pdf_url):
+def create_prompt(paper_text):
     logger.info("Creating prompt...")
-    paper_text = _read_paper(pdf_url)
     with open("./format.txt") as f:
         system_prompt = f.read()
 

@@ -4,7 +4,8 @@ import re
 from logging import getLogger, StreamHandler, DEBUG
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
-import utils
+import paper
+import gpt
 from dotenv import load_dotenv
 
 load_dotenv(verbose=True)
@@ -43,20 +44,27 @@ def respond_to_mention(event, say):
     response = ""
     pdf_url = ""
     for url in url_list:
-        is_pdf = utils.is_pdf(url)
+        is_pdf = paper.is_pdf(url)
         is_arxiv = "arxiv.org" in url
 
         if is_arxiv and not is_pdf:
-            pdf_url = utils.get_arxiv_pdf_url(url)
+            pdf_url = paper.get_arxiv_pdf_url(url)
         elif is_pdf:
             pdf_url = url
 
         if pdf_url:
-            prompt = utils.create_prompt(pdf_url)
-            response += f"<@{user_id}> {url} の要約です。\n"
-            answer = utils.generate(prompt)
-            response += f"{answer}\n\n"
-            logger.info(f"Successfully response from {url}.")
+            tmp_file_name = f"tmp_{os.path.basename(pdf_url)}"
+            is_success = paper.download_pdf(pdf_url, tmp_file_name)
+
+            if is_success:
+                paper_text = paper.read(tmp_file_name)
+                prompt = gpt.create_prompt(paper_text)
+                response += f"<@{user_id}> {url} の要約です。\n"
+                answer = gpt.generate(prompt)
+                response += f"{answer}\n\n"
+                logger.info(f"Successfully response from {url}.")
+            else:
+                response = f"{pdf_url} からの論文を読み取ることができませんでした。\n別の論文を指定してください。"
         else:
             logger.warning("User does'nt specify arxiv url or paper pdf url.")
             response = f"<@{user_id}> {url} はarxivのURLもしくは論文PDFのURLではありません。\n正しくURLを指定してください。\n\n"
