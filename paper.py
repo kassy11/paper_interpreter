@@ -1,23 +1,13 @@
 import os
-from os.path import join, dirname
 import arxiv
 import urllib.request
 from pypdf import PdfReader
 import os
 from urllib.parse import urlparse
-from dotenv import load_dotenv
-from logging import getLogger, StreamHandler, DEBUG
+from logzero import logger
+from utils import load_env
 
-load_dotenv(verbose=True)
-dotenv_path = join(dirname(__file__), ".env")
-load_dotenv(dotenv_path)
-
-logger = getLogger(__name__)
-handler = StreamHandler()
-handler.setLevel(DEBUG)
-logger.setLevel(DEBUG)
-logger.addHandler(handler)
-logger.propagate = False
+load_env()
 
 
 def is_pdf(url):

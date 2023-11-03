@@ -1,28 +1,17 @@
 import os
-from os.path import join, dirname
 import re
-from logging import getLogger, StreamHandler, DEBUG
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 import paper
 import gpt
-from dotenv import load_dotenv
+from logzero import logger
+from utils import load_env
 
-load_dotenv(verbose=True)
-dotenv_path = join(dirname(__file__), ".env")
-load_dotenv(dotenv_path)
-
+load_env()
 SLACK_BOT_TOKEN = os.environ.get("SLACK_BOT_TOKEN")
 SLACK_APP_TOKEN = os.environ.get("SLACK_APP_TOKEN")
 
 app = App(token=SLACK_BOT_TOKEN)
-
-logger = getLogger(__name__)
-handler = StreamHandler()
-handler.setLevel(DEBUG)
-logger.setLevel(DEBUG)
-logger.addHandler(handler)
-logger.propagate = False
 
 
 @app.event("message")

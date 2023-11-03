@@ -6,3 +6,4 @@ arxiv
 pypdf
 black
 tiktoken
+logzero

@@ -1,15 +1,11 @@
 import openai
 from langchain.chat_models import ChatOpenAI
-from langchain.schema import AIMessage, HumanMessage, SystemMessage
-from dotenv import load_dotenv
+from langchain.schema import HumanMessage, SystemMessage
 import os
-from os.path import join, dirname
-from logging import getLogger, StreamHandler, DEBUG
+from logzero import logger
+from utils import load_env
 
-load_dotenv(verbose=True)
-dotenv_path = join(dirname(__file__), ".env")
-load_dotenv(dotenv_path)
-
+load_env()
 # max tokensの大きいモデルを使う
 # https://platform.openai.com/docs/models
 # 2023/11現在, gpt-4-32kはAPIから利用できないので注意
@@ -19,13 +15,6 @@ MODEL_MAX_TOKENS = {"GPT3": 16000, "GPT4": 32000}
 RESPONSE_MAX_TOKENS = 1000
 MODEL = os.environ.get("MODEL")
 openai.api_key = os.environ.get("OPENAI_API_KEY")
-
-logger = getLogger(__name__)
-handler = StreamHandler()
-handler.setLevel(DEBUG)
-logger.setLevel(DEBUG)
-logger.addHandler(handler)
-logger.propagate = False
 
 
 def create_prompt(paper_text):
