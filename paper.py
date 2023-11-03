@@ -1,10 +1,10 @@
 import os
 import arxiv
 import urllib.request
-from pypdf import PdfReader
 import os
 from urllib.parse import urlparse
 from logzero import logger
+from pdfminer.high_level import extract_text
 from utils import load_env
 
 load_env()
@@ -51,11 +51,8 @@ def download_pdf(pdf_url, tmp_file_name):
 
 
 def read(tmp_file_name):
-    reader = PdfReader(tmp_file_name)
-    paper_text = ""
     logger.info(f"Reading pdf text from {tmp_file_name}...")
-    for page in reader.pages:
-        paper_text += str(page.extract_text())
+    paper_text = extract_text(tmp_file_name)
 
     # 参考文献以降を削除
     reference_pos = max(paper_text.find("References"), paper_text.find("REFERENCES"))
