@@ -6,6 +6,7 @@ import paper
 import gpt
 from logzero import logger
 from utils import load_env
+import datetime
 
 load_env()
 SLACK_BOT_TOKEN = os.environ.get("SLACK_BOT_TOKEN")
@@ -32,7 +33,8 @@ def respond_to_mention(event, say):
         )
     response = ""
     for url in url_list:
-        tmp_file_name = f"tmp_{os.path.basename(url)}"
+        prefix = str(datetime.datetime.now()).strip()
+        tmp_file_name = f"tmp_{prefix}_{os.path.basename(url)}"
         is_success = paper.download_pdf(url, tmp_file_name)
 
         if is_success:
