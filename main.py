@@ -27,7 +27,7 @@ def respond_to_mention(event, say):
     if not url_list:
         logger.warning("User does'nt specify url.")
         say(
-            text=f"<@{user_id}> 論文PDFのURLを指定してください。",
+            text=f"<@{user_id}>\n論文PDFのURLを指定してください。",
             thread_ts=thread_id,
             channel=channel_id,
         )
@@ -35,21 +35,28 @@ def respond_to_mention(event, say):
     for url in url_list:
         prefix = str(datetime.datetime.now()).strip()
         tmp_file_name = f"tmp_{prefix}_{os.path.basename(url)}"
+        say(
+            text=f"<@{user_id}>\n{url} から論文を読み取っています。",
+            thread_ts=thread_id,
+            channel=channel_id,
+        )
         is_success = paper.download_pdf(url, tmp_file_name)
 
         if is_success:
             paper_text = paper.read(tmp_file_name)
             prompt = gpt.create_prompt(paper_text)
             say(
-                text="要約を生成中です。\n1~5分ほどかかります。\n",
+                text=f"<@{user_id}>\n要約を生成中です。\n1~5分ほどかかります。\n",
                 thread_ts=thread_id,
                 channel=channel_id,
             )
             answer = gpt.generate(prompt)
-            response += f"<@{user_id}> {url} の要約です。\n{answer}\n\n"
+            response += f"<@{user_id}>\n{url} の要約です。\n{answer}\n\n"
             logger.info(f"Successfully response from {url}.")
         else:
-            response = f"<@{user_id}> {url} から論文を読み取ることができませんでした。\n論文PDFのURLを指定してください。"
+            response += (
+                f"<@{user_id}>\n{url} から論文を読み取ることができませんでした。\n論文PDFのURLを指定してください。"
+            )
     say(text=response, thread_ts=thread_id, channel=channel_id)
 
 
