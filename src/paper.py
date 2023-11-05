@@ -3,7 +3,7 @@ import urllib.request
 import os
 from logzero import logger
 from pdfminer.high_level import extract_text
-from utils import load_env
+from .utils import load_env
 
 load_env()
 
@@ -34,14 +34,11 @@ def read(tmp_file_name):
     logger.info(f"Reading pdf text from {tmp_file_name}...")
     paper_text = extract_text(tmp_file_name).strip()
 
-    # 参考文献以降を削除
+    # delete after refenrences
     reference_pos = max(
         paper_text.find("References"),
         paper_text.find("REFERENCES"),
         paper_text.find("参考文献"),
     )
     paper_text = paper_text[:reference_pos]
-    # 論文PDFを削除
-    logger.info(f"Delete paper {tmp_file_name}.")
-    os.remove(tmp_file_name)
     return paper_text

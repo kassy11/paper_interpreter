@@ -1,13 +1,5 @@
-from dotenv import load_dotenv
-from os.path import join, dirname
-import urllib.request
 from logzero import logger
-
-
-def load_env():
-    load_dotenv(verbose=True)
-    dotenv_path = join(dirname(__file__), ".env")
-    load_dotenv(dotenv_path)
+import urllib.request
 
 
 def add_mention(user_id, text):
