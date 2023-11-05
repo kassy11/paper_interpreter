@@ -3,7 +3,7 @@ from langchain.chat_models import ChatOpenAI
 from langchain.schema import HumanMessage, SystemMessage
 import os
 from logzero import logger
-from utils import load_env
+from .utils import load_env
 
 load_env()
 # big max tokens models

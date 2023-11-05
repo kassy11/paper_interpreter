@@ -1,9 +1,7 @@
-import os
 import urllib.request
-import os
 from logzero import logger
 import fitz
-from utils import load_env
+from .utils import load_env
 
 load_env()
 PAPER_TEXT_KEYS = {"TEXT": "text", "TITLE": "title", "AUTHOR": "author"}

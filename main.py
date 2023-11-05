@@ -1,14 +1,13 @@
 import os
 import re
+from src.bot import add_mention, build_image_blocks
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
-import src.paper
-import src.gpt
+from src.paper import download_pdf, get_content, PAPER_TEXT_KEYS
+from src.gpt import create_prompt, generate
 from logzero import logger
-from src.utils import load_env
 import datetime
-from src.utils import read_format_prompt, remove
-import slack
+from src.utils import read_format_prompt, remove, load_env
 
 load_env()
 SLACK_BOT_TOKEN = os.environ.get("SLACK_BOT_TOKEN")
@@ -31,7 +30,7 @@ def respond_to_mention(event, say):
     if not url_list:
         logger.warning("User does'nt specify url.")
         say(
-            text=slack.add_mention(user_id, "論文PDFのURLを指定してください。"),
+            text=add_mention(user_id, "論文PDFのURLを指定してください。"),
             thread_ts=thread_id,
             channel=channel_id,
         )
@@ -59,35 +58,33 @@ def respond_to_mention(event, say):
         prefix = str(datetime.datetime.now()).strip()
         tmp_file_name = f"tmp_{prefix}_{os.path.basename(url)}"
         say(
-            text=slack.add_mention(user_id, f"{url} から論文を読み取っています。"),
+            text=add_mention(user_id, f"{url} から論文を読み取っています。"),
             thread_ts=thread_id,
             channel=channel_id,
         )
-        is_success = paper.download_pdf(url, tmp_file_name)
+        is_success = download_pdf(url, tmp_file_name)
 
         if is_success:
-            paper_text, figure_paths = paper.get_content(tmp_file_name)
-            prompt = gpt.create_prompt(
-                format_prompt, paper_text[paper.PAPER_TEXT_KEYS.TEXT]
-            )
+            paper_text, figure_paths = get_content(tmp_file_name)
+            prompt = create_prompt(format_prompt, paper_text[PAPER_TEXT_KEYS.TEXT])
             say(
-                text=slack.add_mention(user_id, "要約を生成中です。\n1~5分ほどかかります。\n"),
+                text=add_mention(user_id, "要約を生成中です。\n1~5分ほどかかります。\n"),
                 thread_ts=thread_id,
                 channel=channel_id,
             )
-            answer = gpt.generate(prompt)
-            response += slack.add_mention(
+            answer = generate(prompt)
+            response += add_mention(
                 user_id,
-                f"{url} の要約です。\n論文名: {paper_text[paper.PAPER_TEXT_KEYS.TITLE]}\n著者：{paper.PAPER_TEXT_KEYS.AUTHOR}\n{answer}\n\n",
+                f"{url} の要約です。\n論文名: {paper_text[PAPER_TEXT_KEYS.TITLE]}\n著者：{PAPER_TEXT_KEYS.AUTHOR}\n{answer}\n\n",
             )
         else:
-            response += slack.add_mention(
+            response += add_mention(
                 user_id, f"{url} から論文を読み取ることができませんでした。\n論文PDFのURLを指定してください。"
             )
     say(text=response, thread_ts=thread_id, channel=channel_id)
     if figure_paths:
         say(
-            blocks=slack.build_image_blocks(figure_paths),
+            blocks=build_image_blocks(figure_paths),
             thread_ts=thread_id,
             channel=channel_id,
         )

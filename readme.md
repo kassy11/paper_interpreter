@@ -24,7 +24,7 @@ SLACK_APP_TOKEN=xxxxx
 - `docker compose up`でボットを起動する
 
 ## 要約形式
-- デフォルトでは`format.txt`の形式で論文が要約されます
+- デフォルトでは`src/format.txt`の形式で論文が要約されます
 - Slackボットにテキストもしくは`.txt`ファイルで要約形式を指定することもできます
 
 ## 注意事項
