@@ -2,12 +2,12 @@ import os
 import re
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
-import paper
-import gpt
+from src.paper import download_pdf, read
+from src.gpt import generate, create_prompt
 from logzero import logger
-from utils import load_env
+from src.utils import load_env
+from src.bot import add_mention, read_format_prompt
 import datetime
-from utils import add_mention, read_format_prompt
 
 load_env()
 SLACK_BOT_TOKEN = os.environ.get("SLACK_BOT_TOKEN")
@@ -34,6 +34,7 @@ def respond_to_mention(event, say):
             channel=channel_id,
         )
 
+    # format prompt for summary
     format_prompt = ""
     if "files" in event and len(event["files"]) > 0:
         for file in event["files"]:
@@ -41,13 +42,11 @@ def respond_to_mention(event, say):
                 format_prompt = read_format_prompt(
                     file["url_private_download"], SLACK_BOT_TOKEN
                 )
-                logger.info(
-                    f"Used send .txt file for format prompt.\nprompt = {format_prompt}"
-                )
+                logger.info(f"Used send .txt file for format prompt.")
                 break
     elif user_text:
         format_prompt = user_text
-        logger.info(f"User seand format prompt.\nprompt = {format_prompt}")
+        logger.info(f"User send format prompt.")
 
     response = ""
     for url in url_list:
@@ -58,19 +57,24 @@ def respond_to_mention(event, say):
             thread_ts=thread_id,
             channel=channel_id,
         )
-        is_success = paper.download_pdf(url, tmp_file_name)
+
+        try:
+            os.remove("tmp*.pdf")
+        except:
+            pass
+        is_success = download_pdf(url, tmp_file_name)
 
         if is_success:
-            paper_text = paper.read(tmp_file_name)
-            prompt = gpt.create_prompt(format_prompt, paper_text)
+            paper_text = read(tmp_file_name)
+            prompt = create_prompt(format_prompt, paper_text)
             say(
                 text=add_mention(user_id, "要約を生成中です。\n1~5分ほどかかります。\n"),
                 thread_ts=thread_id,
                 channel=channel_id,
             )
-            answer = gpt.generate(prompt)
+            answer = generate(prompt)
             response += add_mention(user_id, f"{url} の要約です。\n{answer}\n\n")
-            logger.info(f"Successfully response from {url}.")
+            logger.info(f"Successfully generate summary from {url}.")
         else:
             response += add_mention(
                 user_id, f"{url} から論文を読み取ることができませんでした。\n論文PDFのURLを指定してください。"
