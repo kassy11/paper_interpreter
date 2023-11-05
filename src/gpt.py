@@ -19,6 +19,7 @@ openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 
 def create_prompt(format_prompt, paper_text):
+    print()
     logger.info("Creating prompt...")
     if not format_prompt:
         with open("./format.txt") as f:

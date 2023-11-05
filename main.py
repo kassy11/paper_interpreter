@@ -3,7 +3,7 @@ import re
 from src.bot import add_mention, build_image_blocks
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
-from src.paper import download_pdf, get_content, PAPER_TEXT_KEYS
+from src.paper import download_pdf, get_content
 from src.gpt import create_prompt, generate
 from logzero import logger
 import datetime
@@ -66,7 +66,7 @@ def respond_to_mention(event, say):
 
         if is_success:
             paper_text, figure_paths = get_content(tmp_file_name)
-            prompt = create_prompt(format_prompt, paper_text[PAPER_TEXT_KEYS.TEXT])
+            prompt = create_prompt(format_prompt, paper_text)
             say(
                 text=add_mention(user_id, "要約を生成中です。\n1~5分ほどかかります。\n"),
                 thread_ts=thread_id,
@@ -75,21 +75,25 @@ def respond_to_mention(event, say):
             answer = generate(prompt)
             response += add_mention(
                 user_id,
-                f"{url} の要約です。\n論文名: {paper_text[PAPER_TEXT_KEYS.TITLE]}\n著者：{PAPER_TEXT_KEYS.AUTHOR}\n{answer}\n\n",
+                f"{url} の要約です。\n\n{answer}\n\n",
             )
         else:
             response += add_mention(
                 user_id, f"{url} から論文を読み取ることができませんでした。\n論文PDFのURLを指定してください。"
             )
+    # send paper summary
     say(text=response, thread_ts=thread_id, channel=channel_id)
     if figure_paths:
+        # send paper figures
         say(
             blocks=build_image_blocks(figure_paths),
             thread_ts=thread_id,
             channel=channel_id,
         )
+    logger.info("Successfully send response.")
     # remove tmp files
     remove(tmp_file_name, figure_paths)
+    logger.info("Successfully delete tmp files.")
     return
 
 
