@@ -2,7 +2,7 @@ langchain
 openai
 slack-bolt
 python-dotenv
-pdfminer.six
+pymupdf
 black
 tiktoken
 logzero

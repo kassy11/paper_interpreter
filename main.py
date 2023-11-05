@@ -2,12 +2,13 @@ import os
 import re
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
-import paper
-import gpt
+import src.paper
+import src.gpt
 from logzero import logger
-from utils import load_env
+from src.utils import load_env
 import datetime
-from utils import add_mention, read_format_prompt
+from src.utils import read_format_prompt, remove
+import slack
 
 load_env()
 SLACK_BOT_TOKEN = os.environ.get("SLACK_BOT_TOKEN")
@@ -20,6 +21,7 @@ app = App(token=SLACK_BOT_TOKEN)
 @app.event("app_mention")
 def respond_to_mention(event, say):
     pattern = "https?://[\w/:%#\$&\?\(\)~\.=\+\-]+"
+    # extract url from user input
     url_list = re.findall(pattern, event["text"])
     user_text = re.sub(r"<[^>]*>", "", event["text"])
     thread_id = event["ts"]
@@ -29,11 +31,13 @@ def respond_to_mention(event, say):
     if not url_list:
         logger.warning("User does'nt specify url.")
         say(
-            text=add_mention(user_id, "論文PDFのURLを指定してください。"),
+            text=slack.add_mention(user_id, "論文PDFのURLを指定してください。"),
             thread_ts=thread_id,
             channel=channel_id,
         )
+        return
 
+    # format prompt for summary
     format_prompt = ""
     if "files" in event and len(event["files"]) > 0:
         for file in event["files"]:
@@ -50,32 +54,46 @@ def respond_to_mention(event, say):
         logger.info(f"User seand format prompt.\nprompt = {format_prompt}")
 
     response = ""
+    figure_paths = []
     for url in url_list:
         prefix = str(datetime.datetime.now()).strip()
         tmp_file_name = f"tmp_{prefix}_{os.path.basename(url)}"
         say(
-            text=add_mention(user_id, f"{url} から論文を読み取っています。"),
+            text=slack.add_mention(user_id, f"{url} から論文を読み取っています。"),
             thread_ts=thread_id,
             channel=channel_id,
         )
         is_success = paper.download_pdf(url, tmp_file_name)
 
         if is_success:
-            paper_text = paper.read(tmp_file_name)
-            prompt = gpt.create_prompt(format_prompt, paper_text)
+            paper_text, figure_paths = paper.get_content(tmp_file_name)
+            prompt = gpt.create_prompt(
+                format_prompt, paper_text[paper.PAPER_TEXT_KEYS.TEXT]
+            )
             say(
-                text=add_mention(user_id, "要約を生成中です。\n1~5分ほどかかります。\n"),
+                text=slack.add_mention(user_id, "要約を生成中です。\n1~5分ほどかかります。\n"),
                 thread_ts=thread_id,
                 channel=channel_id,
             )
             answer = gpt.generate(prompt)
-            response += add_mention(user_id, f"{url} の要約です。\n{answer}\n\n")
-            logger.info(f"Successfully response from {url}.")
+            response += slack.add_mention(
+                user_id,
+                f"{url} の要約です。\n論文名: {paper_text[paper.PAPER_TEXT_KEYS.TITLE]}\n著者：{paper.PAPER_TEXT_KEYS.AUTHOR}\n{answer}\n\n",
+            )
         else:
-            response += add_mention(
+            response += slack.add_mention(
                 user_id, f"{url} から論文を読み取ることができませんでした。\n論文PDFのURLを指定してください。"
             )
     say(text=response, thread_ts=thread_id, channel=channel_id)
+    if figure_paths:
+        say(
+            blocks=slack.build_image_blocks(figure_paths),
+            thread_ts=thread_id,
+            channel=channel_id,
+        )
+    # remove tmp files
+    remove(tmp_file_name, figure_paths)
+    return
 
 
 if __name__ == "__main__":

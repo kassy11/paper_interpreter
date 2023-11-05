@@ -6,9 +6,9 @@ from logzero import logger
 from utils import load_env
 
 load_env()
-# max tokensの大きいモデルを使う
+# big max tokens models
 # https://platform.openai.com/docs/models
-# 2023/11現在, gpt-4-32kはAPIから利用できないので注意
+# gpt-4-32k is not available in 2023/11
 # https://help.openai.com/en/articles/7102672-how-can-i-access-gpt-4
 MODEL_NAME = {"GPT3": "gpt-3.5-turbo-16k", "GPT4": "gpt-4-32k"}
 MODEL_MAX_TOKENS = {"GPT3": 16000, "GPT4": 32000}
