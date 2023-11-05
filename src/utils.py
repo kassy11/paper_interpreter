@@ -8,7 +8,3 @@ def load_env():
     load_dotenv(verbose=True)
     dotenv_path = join(dirname(__file__), ".env")
     load_dotenv(dotenv_path)
-
-
-def remove(file_name):
-    os.remove(file_name)
