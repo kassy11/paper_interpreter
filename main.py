@@ -7,6 +7,7 @@ import gpt
 from logzero import logger
 from utils import load_env
 import datetime
+from utils import add_mention, read_format_prompt
 
 load_env()
 SLACK_BOT_TOKEN = os.environ.get("SLACK_BOT_TOKEN")
@@ -20,6 +21,7 @@ app = App(token=SLACK_BOT_TOKEN)
 def respond_to_mention(event, say):
     pattern = "https?://[\w/:%#\$&\?\(\)~\.=\+\-]+"
     url_list = re.findall(pattern, event["text"])
+    user_text = re.sub(r"<[^>]*>", "", event["text"])
     thread_id = event["ts"]
     user_id = event["user"]
     channel_id = event["channel"]
@@ -27,16 +29,32 @@ def respond_to_mention(event, say):
     if not url_list:
         logger.warning("User does'nt specify url.")
         say(
-            text=f"<@{user_id}>\n論文PDFのURLを指定してください。",
+            text=add_mention(user_id, "論文PDFのURLを指定してください。"),
             thread_ts=thread_id,
             channel=channel_id,
         )
+
+    format_prompt = ""
+    if "files" in event and len(event["files"]) > 0:
+        for file in event["files"]:
+            if file["mimetype"] == "text/plain":
+                format_prompt = read_format_prompt(
+                    file["url_private_download"], SLACK_BOT_TOKEN
+                )
+                logger.info(
+                    f"Used send .txt file for format prompt.\nprompt = {format_prompt}"
+                )
+                break
+    elif user_text:
+        format_prompt = user_text
+        logger.info(f"User seand format prompt.\nprompt = {format_prompt}")
+
     response = ""
     for url in url_list:
         prefix = str(datetime.datetime.now()).strip()
         tmp_file_name = f"tmp_{prefix}_{os.path.basename(url)}"
         say(
-            text=f"<@{user_id}>\n{url} から論文を読み取っています。",
+            text=add_mention(user_id, f"{url} から論文を読み取っています。"),
             thread_ts=thread_id,
             channel=channel_id,
         )
@@ -44,18 +62,18 @@ def respond_to_mention(event, say):
 
         if is_success:
             paper_text = paper.read(tmp_file_name)
-            prompt = gpt.create_prompt(paper_text)
+            prompt = gpt.create_prompt(format_prompt, paper_text)
             say(
-                text=f"<@{user_id}>\n要約を生成中です。\n1~5分ほどかかります。\n",
+                text=add_mention(user_id, "要約を生成中です。\n1~5分ほどかかります。\n"),
                 thread_ts=thread_id,
                 channel=channel_id,
             )
             answer = gpt.generate(prompt)
-            response += f"<@{user_id}>\n{url} の要約です。\n{answer}\n\n"
+            response += add_mention(user_id, f"{url} の要約です。\n{answer}\n\n")
             logger.info(f"Successfully response from {url}.")
         else:
-            response += (
-                f"<@{user_id}>\n{url} から論文を読み取ることができませんでした。\n論文PDFのURLを指定してください。"
+            response += add_mention(
+                user_id, f"{url} から論文を読み取ることができませんでした。\n論文PDFのURLを指定してください。"
             )
     say(text=response, thread_ts=thread_id, channel=channel_id)
 
