@@ -1,6 +1,6 @@
 # paper_interpreter
 
-論文PDFが置いてあるURLを指定すると、その論文を読み取り、[落合陽一形式のフォーマット](https://www.slideshare.net/Ochyai/1-ftma15#65)で要約を返してくれるSlackボット
+論文PDFが置いてあるURLを指定すると、その論文を読み取り要約を返してくれるSlackボット
 
 <img src="./example.png" title="example">
 
@@ -10,7 +10,7 @@
   - 「Basic Information」の「App-Level Tokens」から`connections:write`スコープのトークンを生成する
     - これを`.env`の`SLACK_APP_TOKEN`に格納する
   - 「Socket Mode」と「Event Subscriptions」の「Enable Events」をOnにし、「Subscribe to bot events」から`app.mention`と`message.im`を選択する
-  - 「OAuth & Permissions」の「Scopes」から、`app_mentions:read`,`im:read`, `chat:write`を追加する
+  - 「OAuth & Permissions」の「Scopes」から、`app_mentions:read`,`im:read`, `chat:write`, `file:read`を追加する
     - 追加後に「Bot User OAuth Token」が生成されるので、これを`.env`の`SLACK_BOT_TOKEN`に格納する
   - 「OAuth & Permissions」「Install Worksspace」からSlackにボットを追加する
 - `.env`に環境変数を格納する
@@ -22,6 +22,10 @@ SLACK_BOT_TOKEN=xxxxx
 SLACK_APP_TOKEN=xxxxx
 ```
 - `docker compose up`でボットを起動する
+
+## 要約形式
+- デフォルトでは`format.txt`の形式で論文が要約されます
+- Slackボットにテキストもしくは`.txt`ファイルで要約形式を指定することもできます
 
 ## 注意事項
 論文全文を読み取り、トークン数の多いChatGPTモデルに入力しています.
