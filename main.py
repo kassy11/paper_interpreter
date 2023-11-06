@@ -38,11 +38,11 @@ def respond_to_mention(event, say):
     format_prompt = ""
     if "files" in event and len(event["files"]) > 0:
         for file in event["files"]:
-            if file["mimetype"] == "text/plain":
+            if file["mimetype"] == "text/plain" or file["mimetype"] == "text/markdown":
                 format_prompt = read_format_prompt(
                     file["url_private_download"], SLACK_BOT_TOKEN
                 )
-                logger.info(f"Used send .txt file for format prompt.")
+                logger.info(f"User send format prompt by file.")
                 break
     elif user_text:
         format_prompt = user_text
