@@ -1,7 +1,5 @@
 from dotenv import load_dotenv
 from os.path import join, dirname
-from logzero import logger
-import os
 
 
 def load_env():

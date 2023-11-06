@@ -42,11 +42,11 @@ def respond_to_mention(event, say):
                 format_prompt = read_format_prompt(
                     file["url_private_download"], SLACK_BOT_TOKEN
                 )
-                logger.info(f"User send format prompt by file.")
+                logger.info("User send format prompt by file.")
                 break
     elif user_text:
         format_prompt = user_text
-        logger.info(f"User send format prompt.")
+        logger.info("User send format prompt.")
 
     response = ""
     for url in url_list:
@@ -58,10 +58,6 @@ def respond_to_mention(event, say):
             channel=channel_id,
         )
 
-        try:
-            os.remove("tmp*.pdf")
-        except:
-            pass
         is_success = download_pdf(url, tmp_file_name)
 
         if is_success:
