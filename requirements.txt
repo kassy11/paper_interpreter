@@ -3,6 +3,6 @@ openai
 slack-bolt
 python-dotenv
 pdfminer.six
-black
+ruff
 tiktoken
 logzero

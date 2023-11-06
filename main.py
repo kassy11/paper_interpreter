@@ -68,7 +68,9 @@ def respond_to_mention(event, say):
             paper_text = read(tmp_file_name)
             prompt = create_prompt(format_prompt, paper_text)
             say(
-                text=add_mention(user_id, "要約を生成中です。\n1~5分ほどかかります。\n"),
+                text=add_mention(
+                    user_id, "要約を生成中です。\n1~5分ほどかかります。\n"
+                ),
                 thread_ts=thread_id,
                 channel=channel_id,
             )
@@ -77,7 +79,8 @@ def respond_to_mention(event, say):
             logger.info(f"Successfully generate summary from {url}.")
         else:
             response += add_mention(
-                user_id, f"{url} から論文を読み取ることができませんでした。\n論文PDFのURLを指定してください。"
+                user_id,
+                f"{url} から論文を読み取ることができませんでした。\n論文PDFのURLを指定してください。",
             )
     say(text=response, thread_ts=thread_id, channel=channel_id)
 
