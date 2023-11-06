@@ -20,11 +20,32 @@ app = App(token=SLACK_BOT_TOKEN)
 @app.event("app_mention")
 def respond_to_mention(event, say):
     pattern = "https?://[\w/:%#\$&\?\(\)~\.=\+\-]+"
-    url_list = re.findall(pattern, event["text"])
+    url_list = []
+    for url in re.findall(pattern, event["text"]):
+        url_list.append({"url": url, "is_slack_upload": False})
+
     user_text = re.sub(r"<[^>]*>", "", event["text"]).strip()
     thread_id = event["ts"]
     user_id = event["user"]
     channel_id = event["channel"]
+
+    # read user input and upload files
+    format_prompt = ""
+    if "files" in event and len(event["files"]) > 0:
+        for file in event["files"]:
+            mimetype = file["mimetype"]
+            if mimetype == "text/plain" or mimetype == "text/markdown":
+                format_prompt = read_format_prompt(
+                    file["url_private_download"], SLACK_BOT_TOKEN
+                )
+                logger.info("User send format prompt by file.")
+            elif mimetype == "application/pdf":
+                url_list.append(
+                    {"url": file["url_private_download"], "is_slack_upload": True}
+                )
+    elif user_text:
+        format_prompt = user_text
+        logger.info("User send format prompt.")
 
     if not url_list:
         logger.warning("User does'nt specify url.")
@@ -34,31 +55,17 @@ def respond_to_mention(event, say):
             channel=channel_id,
         )
 
-    # format prompt for summary
-    format_prompt = ""
-    if "files" in event and len(event["files"]) > 0:
-        for file in event["files"]:
-            if file["mimetype"] == "text/plain" or file["mimetype"] == "text/markdown":
-                format_prompt = read_format_prompt(
-                    file["url_private_download"], SLACK_BOT_TOKEN
-                )
-                logger.info("User send format prompt by file.")
-                break
-    elif user_text:
-        format_prompt = user_text
-        logger.info("User send format prompt.")
-
     response = ""
-    for url in url_list:
+    for url_dic in url_list:
         prefix = str(datetime.datetime.now()).strip()
-        tmp_file_name = f"tmp_{prefix}_{os.path.basename(url)}"
+        tmp_file_name = f'tmp_{prefix}_{os.path.basename(url_dic["url"])}'
         say(
-            text=add_mention(user_id, f"{url} から論文を読み取っています。"),
+            text=add_mention(user_id, f'{url_dic["url"]} から論文を読み取っています。'),
             thread_ts=thread_id,
             channel=channel_id,
         )
 
-        is_success = download_pdf(url, tmp_file_name)
+        is_success = download_pdf(url_dic, tmp_file_name, SLACK_BOT_TOKEN)
 
         if is_success:
             paper_text = read(tmp_file_name)
@@ -71,12 +78,14 @@ def respond_to_mention(event, say):
                 channel=channel_id,
             )
             answer = generate(prompt)
-            response += add_mention(user_id, f"{url} の要約です。\n{answer}\n\n")
-            logger.info(f"Successfully generate summary from {url}.")
+            response += add_mention(
+                user_id, f'{url_dic["url"]} の要約です。\n{answer}\n\n'
+            )
+            logger.info(f'Successfully generate summary from {url_dic["url"]}.')
         else:
             response += add_mention(
                 user_id,
-                f"{url} から論文を読み取ることができませんでした。\n論文PDFのURLを指定してください。",
+                f'{url_dic["url"]} から論文を読み取ることができませんでした。\n論文PDFのURLを指定してください。',
             )
     say(text=response, thread_ts=thread_id, channel=channel_id)
 
