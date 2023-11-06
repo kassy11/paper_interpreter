@@ -13,7 +13,7 @@ def read_format_prompt(url, slack_bot_token):
     logger.info(f"Downloading format text from {url}...")
     try:
         with urllib.request.urlopen(req) as web_file:
-            prompt = web_file.read().decode("utf-8")
+            prompt = web_file.read().decode("utf-8").strip
     except Exception as e:
         logger.warning(f"Failed to download format text from {url}.")
         logger.warning(f"Exception: {str(e)}")
