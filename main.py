@@ -42,11 +42,11 @@ def respond_to_mention(event, say):
                 format_prompt = read_format_prompt(
                     file["url_private_download"], SLACK_BOT_TOKEN
                 )
-                logger.info(f"User send format prompt by file.")
+                logger.info("User send format prompt by file.")
                 break
     elif user_text:
         format_prompt = user_text
-        logger.info(f"User send format prompt.")
+        logger.info("User send format prompt.")
 
     response = ""
     for url in url_list:
@@ -58,17 +58,15 @@ def respond_to_mention(event, say):
             channel=channel_id,
         )
 
-        try:
-            os.remove("tmp*.pdf")
-        except:
-            pass
         is_success = download_pdf(url, tmp_file_name)
 
         if is_success:
             paper_text = read(tmp_file_name)
             prompt = create_prompt(format_prompt, paper_text)
             say(
-                text=add_mention(user_id, "要約を生成中です。\n1~5分ほどかかります。\n"),
+                text=add_mention(
+                    user_id, "要約を生成中です。\n1~5分ほどかかります。\n"
+                ),
                 thread_ts=thread_id,
                 channel=channel_id,
             )
@@ -77,7 +75,8 @@ def respond_to_mention(event, say):
             logger.info(f"Successfully generate summary from {url}.")
         else:
             response += add_mention(
-                user_id, f"{url} から論文を読み取ることができませんでした。\n論文PDFのURLを指定してください。"
+                user_id,
+                f"{url} から論文を読み取ることができませんでした。\n論文PDFのURLを指定してください。",
             )
     say(text=response, thread_ts=thread_id, channel=channel_id)
 

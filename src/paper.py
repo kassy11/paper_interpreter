@@ -1,6 +1,5 @@
 import os
 import urllib.request
-import os
 from logzero import logger
 from pdfminer.high_level import extract_text
 from .utils import load_env
