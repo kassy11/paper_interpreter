@@ -8,8 +8,12 @@ from .utils import load_env
 load_env()
 
 
-def _is_pdf(tmp_file_name):
-    return "application/pdf" in str(mimetypes.guess_type(tmp_file_name)[0])
+def _is_pdf(tmp_file_name, http_response_obj):
+    mimetype = str(mimetypes.guess_type(tmp_file_name)[0])
+    logger.info(f"MimeType of {tmp_file_name}is {mimetype}.")
+    content_type = http_response_obj.getheader("Content-Type")
+    logger.info(f"Content-Type of {tmp_file_name}is {content_type}.")
+    return "application/pdf" in content_type or "application/pdf" in mimetype
 
 
 def download_pdf(url_dic, tmp_file_name, slack_bot_token):
@@ -22,14 +26,14 @@ def download_pdf(url_dic, tmp_file_name, slack_bot_token):
         with urllib.request.urlopen(req) as web_file:
             with open(tmp_file_name, "wb") as local_file:
                 local_file.write(web_file.read())
+
+            if not _is_pdf(tmp_file_name, web_file):
+                logger.warn(f'Content-type of {url_dic["url"]} is not application/pdf.')
+                os.remove(tmp_file_name)
+                return False
     except Exception as e:
         logger.warning(f'Failed to download pdf from {url_dic["url"]}.')
         logger.warning(f"Exception: {str(e)}")
-        return False
-
-    if not _is_pdf(tmp_file_name):
-        logger.warn(f'Content-type of {url_dic["url"]} is not application/pdf.')
-        os.remove(tmp_file_name)
         return False
 
     return True

@@ -21,8 +21,10 @@ app = App(token=SLACK_BOT_TOKEN)
 def respond_to_mention(event, say):
     pattern = "https?://[\w/:%#\$&\?\(\)~\.=\+\-]+"
     url_list = []
-    for url in re.findall(pattern, event["text"]):
-        url_list.append({"url": url, "is_slack_upload": False})
+    urls = re.findall(pattern, event["text"])
+    if urls:
+        for url in urls:
+            url_list.append({"url": url, "is_slack_upload": False})
 
     user_text = re.sub(r"<[^>]*>", "", event["text"]).strip()
     thread_id = event["ts"]
