@@ -21,7 +21,7 @@ app = App(token=SLACK_BOT_TOKEN)
 def respond_to_mention(event, say):
     pattern = "https?://[\w/:%#\$&\?\(\)~\.=\+\-]+"
     url_list = re.findall(pattern, event["text"])
-    user_text = re.sub(r"<[^>]*>", "", event["text"])
+    user_text = re.sub(r"<[^>]*>", "", event["text"]).strip()
     thread_id = event["ts"]
     user_id = event["user"]
     channel_id = event["channel"]
