@@ -49,6 +49,6 @@ def read(tmp_file_name):
         paper_text.find("REFERENCES"),
         paper_text.find("参考文献"),
     )
-    paper_text = paper_text[:reference_pos]
+    paper_text = paper_text[:reference_pos].strip()
     os.remove(tmp_file_name)
     return paper_text
