@@ -1,7 +1,7 @@
-langchain
+langchain==0.0.327
 openai==0.28.1
-slack-bolt
-python-dotenv
-pdfminer.six
-tiktoken
-logzero
+slack-bolt==1.18.0
+python-dotenv==1.00
+pdfminer.six==20221105
+tiktoken==0.5.1
+logzero==1.7.0
