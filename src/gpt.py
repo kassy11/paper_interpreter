@@ -14,7 +14,7 @@ MODEL_NAME = {"GPT3": "gpt-3.5-turbo-16k", "GPT4": "gpt-4-32k"}
 MODEL_MAX_TOKENS = {"GPT3": 16000, "GPT4": 32000}
 RESPONSE_MAX_TOKENS = 1000
 MODEL = os.environ.get("MODEL")
-REQUEST_TIMEOUT = 600
+REQUEST_TIMEOUT = 300
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 
