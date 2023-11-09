@@ -10,9 +10,9 @@ load_env()
 
 def _is_pdf(tmp_file_name, http_response_obj):
     mimetype = str(mimetypes.guess_type(tmp_file_name)[0])
-    logger.info(f"MimeType of {tmp_file_name}is {mimetype}.")
+    logger.info(f"MimeType of {tmp_file_name} is {mimetype}.")
     content_type = http_response_obj.getheader("Content-Type")
-    logger.info(f"Content-Type of {tmp_file_name}is {content_type}.")
+    logger.info(f"Content-Type of {tmp_file_name} is {content_type}.")
     return "application/pdf" in content_type or "application/pdf" in mimetype
 
 
