@@ -12,6 +12,7 @@ import datetime
 load_env()
 SLACK_BOT_TOKEN = os.environ.get("SLACK_BOT_TOKEN")
 SLACK_APP_TOKEN = os.environ.get("SLACK_APP_TOKEN")
+LANG = os.environ.get("LANG")
 
 app = App(token=SLACK_BOT_TOKEN)
 
