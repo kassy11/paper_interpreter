@@ -13,7 +13,8 @@ load_env()
 MODEL_NAME = {"GPT3": "gpt-3.5-turbo-16k", "GPT4": "gpt-4-32k"}
 MODEL_MAX_TOKENS = {"GPT3": 16000, "GPT4": 32000}
 RESPONSE_MAX_TOKENS = 1000
-MODEL = os.environ.get("MODEL")
+model_env = os.environ.get("MODEL", "GPT3")
+MODEL = model_env if model_env in list(MODEL_NAME.keys()) else "GPT3"
 REQUEST_TIMEOUT = 300
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
