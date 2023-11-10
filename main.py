@@ -7,6 +7,7 @@ from src.gpt import generate, create_prompt
 from logzero import logger
 from src.utils import load_env
 from src.bot import add_mention, read_format_prompt
+from src.gpt import MODEL_NAME
 import datetime
 
 load_env()
@@ -90,6 +91,19 @@ def respond_to_mention(event, say):
                 f'{url_dic["url"]} から論文を読み取ることができませんでした。\n論文PDFのURLを指定してください。',
             )
     say(text=response, thread_ts=thread_id, channel=channel_id)
+
+
+@app.command("/model")
+def change_model(ack, respond, command):
+    ack()
+    model_name = command["text"]
+    available_models = list(MODEL_NAME.values())
+    if model_name in available_models:
+        respond(f"要約に使用するモデルを{model_name}に変更しました。")
+    else:
+        respond(
+            f"許可されていないモデル名です。\n{available_models}から選択してください。"
+        )
 
 
 if __name__ == "__main__":
