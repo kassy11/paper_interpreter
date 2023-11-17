@@ -7,11 +7,11 @@ from src.gpt import create_prompt, generate
 from logzero import logger
 from src.utils import remove_tmp_files
 from src.bot import (
-    add_mention,
     read_format_prompt,
     build_image_blocks,
     SLACK_BOT_TOKEN,
     SLACK_APP_TOKEN,
+    respond,
 )
 import datetime
 
@@ -53,10 +53,8 @@ def respond_to_mention(event, say):
 
     if not url_list:
         logger.warning("User does'nt specify url.")
-        say(
-            text=add_mention(user_id, "論文PDFのURLを指定してください。"),
-            thread_ts=thread_id,
-            channel=channel_id,
+        respond(
+            say, user_id, channel_id, thread_id, text="論文PDFのURLを指定してください。"
         )
 
     response = ""
@@ -64,10 +62,12 @@ def respond_to_mention(event, say):
     for url_dic in url_list:
         prefix = str(datetime.datetime.now()).strip()
         tmp_file_name = f'tmp_{prefix}_{os.path.basename(url_dic["url"])}'
-        say(
-            text=add_mention(user_id, f'{url_dic["url"]} から論文を読み取っています。'),
-            thread_ts=thread_id,
-            channel=channel_id,
+        respond(
+            say,
+            user_id,
+            channel_id,
+            thread_id,
+            text=f'{url_dic["url"]} から論文を読み取っています。',
         )
 
         is_success = download_pdf(url_dic, tmp_file_name, SLACK_BOT_TOKEN)
@@ -75,34 +75,34 @@ def respond_to_mention(event, say):
         if is_success:
             paper_text, paper_images = read(tmp_file_name)
             prompt = create_prompt(format_prompt, paper_text)
-            say(
-                text=add_mention(
-                    user_id, "要約を生成中です。\n1~5分ほどかかります。\n"
-                ),
-                thread_ts=thread_id,
-                channel=channel_id,
+            respond(
+                say,
+                user_id,
+                channel_id,
+                thread_id,
+                text="要約を生成中です。\n1~5分ほどかかります。\n",
             )
             answer = generate(prompt)
-            response += add_mention(
-                user_id, f'{url_dic["url"]} の要約です。\n{answer}\n\n'
-            )
+            response += f'{url_dic["url"]} の要約です。\n{answer}\n\n'
+
             logger.info(f'Successfully generate summary from {url_dic["url"]}.')
         else:
-            response += add_mention(
-                user_id,
-                f'{url_dic["url"]} から論文を読み取ることができませんでした。\n論文PDFのURLを指定してください。',
-            )
-    say(text=response, thread_ts=thread_id, channel=channel_id)
+            response += f'{url_dic["url"]} から論文を読み取ることができませんでした。\n論文PDFのURLを指定してください。'
+    respond(say, user_id, channel_id, thread_id, text=response)
     if paper_images:
-        say(
-            text=add_mention(user_id, "以下が論文中の図表です。"),
-            thread_ts=thread_id,
-            channel=channel_id,
+        respond(
+            say,
+            user_id,
+            channel_id,
+            thread_id,
+            text="論文中の図表です。\n（うまく切り出せない場合もあります:man-bowing:）",
         )
-        say(
+        respond(
+            say,
+            user_id,
+            channel_id,
+            thread_id,
             blocks=build_image_blocks(paper_images, channel_id, thread_id),
-            thread_ts=thread_id,
-            channel=channel_id,
         )
     remove_tmp_files(tmp_file_name, paper_images)
     logger.info("Successfully send response.")
