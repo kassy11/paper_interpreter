@@ -9,8 +9,8 @@ def load_env():
     load_dotenv(dotenv_path)
 
 
-def remove_tmp_files(pdf_file, figures):
+def remove_tmp_files(pdf_file, images):
     os.remove(pdf_file)
-    for figure in figures:
-        os.remove(figure)
+    for image in images:
+        os.remove(image)
     return

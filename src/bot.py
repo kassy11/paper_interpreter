@@ -1,24 +1,39 @@
 from logzero import logger
 import urllib.request
+from slack_sdk import WebClient
+import os
+from .utils import load_env
+
+load_env()
+SLACK_BOT_TOKEN = os.environ.get("SLACK_BOT_TOKEN")
+SLACK_APP_TOKEN = os.environ.get("SLACK_APP_TOKEN")
 
 
 def add_mention(user_id, text):
     return f"<@{user_id}>\n{text}"
 
 
-def build_image_blocks(figure_paths):
+def _upload_images(image_paths, channel_id, thread_id):
+    client = WebClient(SLACK_BOT_TOKEN)
+    upload_image_paths = []
+    logger.info(f"Uploading images in slack channel {channel_id}....")
+    for image in image_paths:
+        result = client.files_upload_v2(
+            channel=channel_id, thread_ts=thread_id, file=image
+        )
+        upload_image_paths.append(result["file"]["permalink_public"])
+    return upload_image_paths
+
+
+def build_image_blocks(image_paths, channel_id, thread_id):
+    upload_images = _upload_images(image_paths, channel_id, thread_id)
     blocks = []
-    for figure_path in figure_paths:
+    for image in upload_images:
         blocks.append(
             {
                 "type": "image",
-                "title": {
-                    "type": "plain_text",
-                    "text": "Please enjoy this photo of a kitten",
-                },
-                "image_url": figure_path,
-                # TODO: テキストを追加
-                "alt_text": "An incredibly cute kitten.",
+                "image_url": image,
+                "alt_text": "figure in the paper",
             },
         )
     return blocks

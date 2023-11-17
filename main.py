@@ -3,15 +3,17 @@ import re
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from src.paper import download_pdf, read
-from src.gpt import generate, create_prompt
+from src.gpt import create_prompt, generate
 from logzero import logger
-from src.utils import load_env, remove_tmp_files
-from src.bot import add_mention, read_format_prompt, build_image_blocks
+from src.utils import remove_tmp_files
+from src.bot import (
+    add_mention,
+    read_format_prompt,
+    build_image_blocks,
+    SLACK_BOT_TOKEN,
+    SLACK_APP_TOKEN,
+)
 import datetime
-
-load_env()
-SLACK_BOT_TOKEN = os.environ.get("SLACK_BOT_TOKEN")
-SLACK_APP_TOKEN = os.environ.get("SLACK_APP_TOKEN")
 
 app = App(token=SLACK_BOT_TOKEN)
 
@@ -58,7 +60,7 @@ def respond_to_mention(event, say):
         )
 
     response = ""
-    paper_figures = []
+    paper_images = []
     for url_dic in url_list:
         prefix = str(datetime.datetime.now()).strip()
         tmp_file_name = f'tmp_{prefix}_{os.path.basename(url_dic["url"])}'
@@ -71,7 +73,7 @@ def respond_to_mention(event, say):
         is_success = download_pdf(url_dic, tmp_file_name, SLACK_BOT_TOKEN)
 
         if is_success:
-            paper_text, paper_figures = read(tmp_file_name)
+            paper_text, paper_images = read(tmp_file_name)
             prompt = create_prompt(format_prompt, paper_text)
             say(
                 text=add_mention(
@@ -91,13 +93,18 @@ def respond_to_mention(event, say):
                 f'{url_dic["url"]} から論文を読み取ることができませんでした。\n論文PDFのURLを指定してください。',
             )
     say(text=response, thread_ts=thread_id, channel=channel_id)
-    if paper_figures:
+    if paper_images:
         say(
-            blocks=build_image_blocks(paper_figures),
+            text=add_mention(user_id, "以下が論文中の図表です。"),
             thread_ts=thread_id,
             channel=channel_id,
         )
-    remove_tmp_files(tmp_file_name, paper_figures)
+        say(
+            blocks=build_image_blocks(paper_images, channel_id, thread_id),
+            thread_ts=thread_id,
+            channel=channel_id,
+        )
+    remove_tmp_files(tmp_file_name, paper_images)
     logger.info("Successfully send response.")
 
 
