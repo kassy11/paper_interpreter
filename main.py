@@ -5,8 +5,8 @@ from slack_bolt.adapter.socket_mode import SocketModeHandler
 from src.paper import download_pdf, read
 from src.gpt import generate, create_prompt
 from logzero import logger
-from src.utils import load_env
-from src.bot import add_mention, read_format_prompt
+from src.utils import load_env, remove_tmp_files
+from src.bot import add_mention, read_format_prompt, build_image_blocks
 import datetime
 
 load_env()
@@ -58,6 +58,7 @@ def respond_to_mention(event, say):
         )
 
     response = ""
+    paper_figures = []
     for url_dic in url_list:
         prefix = str(datetime.datetime.now()).strip()
         tmp_file_name = f'tmp_{prefix}_{os.path.basename(url_dic["url"])}'
@@ -70,7 +71,7 @@ def respond_to_mention(event, say):
         is_success = download_pdf(url_dic, tmp_file_name, SLACK_BOT_TOKEN)
 
         if is_success:
-            paper_text = read(tmp_file_name)
+            paper_text, paper_figures = read(tmp_file_name)
             prompt = create_prompt(format_prompt, paper_text)
             say(
                 text=add_mention(
@@ -90,6 +91,14 @@ def respond_to_mention(event, say):
                 f'{url_dic["url"]} から論文を読み取ることができませんでした。\n論文PDFのURLを指定してください。',
             )
     say(text=response, thread_ts=thread_id, channel=channel_id)
+    if paper_figures:
+        say(
+            blocks=build_image_blocks(paper_figures),
+            thread_ts=thread_id,
+            channel=channel_id,
+        )
+    remove_tmp_files(tmp_file_name, paper_figures)
+    logger.info("Successfully send response.")
 
 
 if __name__ == "__main__":

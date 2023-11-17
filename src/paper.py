@@ -1,7 +1,7 @@
 import os
 import urllib.request
 from logzero import logger
-from pdfminer.high_level import extract_text
+import fitz
 import mimetypes
 from .utils import load_env
 
@@ -39,9 +39,17 @@ def download_pdf(url_dic, tmp_file_name, slack_bot_token):
     return True
 
 
+def extract_figures(doc):
+    return
+
+
 def read(tmp_file_name):
     logger.info(f"Reading pdf text from {tmp_file_name}...")
-    paper_text = extract_text(tmp_file_name).strip()
+    paper_text = ""
+    paper_figures = []
+    with fitz.open(tmp_file_name) as doc:
+        paper_text = "".join([page.get_text() for page in doc]).strip()
+        paper_figures = extract_figures(doc)
 
     # delete after refenrences
     reference_pos = max(
@@ -50,5 +58,4 @@ def read(tmp_file_name):
         paper_text.find("参考文献"),
     )
     paper_text = paper_text[:reference_pos].strip()
-    os.remove(tmp_file_name)
-    return paper_text
+    return paper_text, paper_figures
