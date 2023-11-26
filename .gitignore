@@ -297,3 +297,4 @@ ipython_config.py
 *.out
 *.pdf
 tmp*
+image*

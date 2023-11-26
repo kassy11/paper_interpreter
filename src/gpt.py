@@ -33,7 +33,7 @@ def create_prompt(format_prompt, paper_text):
 def generate(prompt):
     chat = ChatOpenAI(
         model_name=MODEL_NAME[MODEL],
-        temperature=0,
+        temperature=0,  # Generate the same summary for the same papers.
         max_tokens=RESPONSE_MAX_TOKENS,
         request_timeout=REQUEST_TIMEOUT,
     )

@@ -10,7 +10,7 @@
   - 「Basic Information」の「App-Level Tokens」から`connections:write`スコープのトークンを生成する
     - これを`.env`の`SLACK_APP_TOKEN`に格納する
   - 「Socket Mode」と「Event Subscriptions」の「Enable Events」をOnにし、「Subscribe to bot events」から`app.mention`と`message.im`を選択する
-  - 「OAuth & Permissions」の「Scopes」から、`app_mentions:read`,`im:read`, `chat:write`, `file:read`を追加する
+  - 「OAuth & Permissions」の「Scopes」から、`app_mentions:read`,`im:read`, `chat:write`, `file:read`, `files:write`を追加する
     - 追加後に「Bot User OAuth Token」が生成されるので、これを`.env`の`SLACK_BOT_TOKEN`に格納する
   - 「OAuth & Permissions」「Install Worksspace」からSlackにボットを追加する
 - `.env`に環境変数を格納する
