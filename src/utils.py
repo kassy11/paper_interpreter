@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 from os.path import join, dirname
 import os
+from logzero import logger
 
 
 def load_env():
@@ -10,7 +11,9 @@ def load_env():
 
 
 def remove_tmp_files(pdf_file, images):
-    os.remove(pdf_file)
-    for image in images:
-        os.remove(image)
-    return
+    try:
+        os.remove(pdf_file)
+        for image in images:
+            os.remove(image)
+    except OSError as e:
+        logger.error(f"Failed to remove file: {e}")
