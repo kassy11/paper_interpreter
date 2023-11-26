@@ -37,7 +37,7 @@ def download_pdf(url_dic, tmp_file_name, slack_bot_token):
     return True
 
 
-# See: https://github.com/rkmt/summarize_arxv/blob/main/mkmd.py
+# See: https://github.com/pymupdf/PyMuPDF-Utilities/blob/master/examples/extract-images/extract-from-pages.py
 def _recoverpix(doc, item):
     xref = item[0]  # xref of PDF image
     smask = item[1]  # xref of its /SMask
@@ -51,8 +51,7 @@ def _recoverpix(doc, item):
 
         try:
             pix = fitz.Pixmap(pix0, mask)
-        except Exception as e:
-            logger.warning("Fallback to original base image in case of problems.")
+        except Exception as e:  # fallback to original base image in case of problems
             logger.warning(f"Exception: {e}")
             pix = fitz.Pixmap(doc.extract_image(xref)["image"])
 
@@ -82,8 +81,8 @@ def _recoverpix(doc, item):
 
 def _extract_images(
     doc,
-    min_width=400,
-    min_height=400,
+    min_width=600,
+    min_height=600,
     abssize=2048,
     max_ratio=8,
     max_num=5,
