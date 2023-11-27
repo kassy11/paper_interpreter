@@ -1,5 +1,5 @@
-langchain==0.0.327
 matplotlib==3.7.2
+langchain==0.0.329
 openai==0.28.1
 slack-bolt==1.18.0
 python-dotenv==1.00
