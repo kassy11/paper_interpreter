@@ -3,7 +3,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: sh -c "python3.10 main.py"
+    command: sh -c "pip install --upgrade pip && pip install -r requirements.txt && python3.10 main.py"
+    volumes:
+      - type: bind
+        source: .
+        target: /bot
+    working_dir: /bot
     restart: unless-stopped
     env_file:
       - .env

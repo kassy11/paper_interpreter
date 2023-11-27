@@ -87,7 +87,7 @@ def _extract_figures(
     min_height=600,
     abssize=2048,
     max_ratio=8,
-    max_num=5,
+    max_num=10,
 ):
     page_count = doc.page_count
 
@@ -125,18 +125,21 @@ def _extract_figures(
             fout.close()
             xreflist.append(xref)
 
-    logger.info(f"Successfully extract {len(xreflist)} images.")
+    logger.info(f"Successfully extract {len(images)} images.")
     return images
 
 
 def _extract_tables(tmp_file_name):
-    tables = camelot.read_pdf(tmp_file_name, pages="all")
+    tables = camelot.read_pdf(
+        tmp_file_name, pages="all", split_text=True, strip_text=" \n", line_scale=40
+    )
     images = []
     for i, table in enumerate(tables):
         suffix = str(datetime.datetime.now()).strip()
         imgname = f"table{i + 1}_{suffix}.png"
         images.append(imgname)
-        dfi.export(table, imgname, table_conversion="matplotlib")
+        dfi.export(table.df, imgname, table_conversion="matplotlib")
+    logger.info(f"Successfully extract {len(images)} tables.")
     return images
 
 
