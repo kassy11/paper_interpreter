@@ -1,7 +1,9 @@
 services:
   paper_interpreter:
-    image: python:3.11
-    command: sh -c "pip install --upgrade pip && pip install -r requirements.txt && python main.py"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: sh -c "pip install --upgrade pip && pip install -r requirements.txt && python3.10 main.py"
     volumes:
       - type: bind
         source: .

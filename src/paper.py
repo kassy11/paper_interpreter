@@ -4,6 +4,8 @@ from logzero import logger
 import fitz
 import mimetypes
 import datetime
+import camelot
+import dataframe_image as dfi
 
 
 def _is_pdf(tmp_file_name, http_response_obj):
@@ -79,13 +81,13 @@ def _recoverpix(doc, item):
     return doc.extract_image(xref)
 
 
-def _extract_images(
+def _extract_figures(
     doc,
     min_width=600,
     min_height=600,
     abssize=2048,
     max_ratio=8,
-    max_num=5,
+    max_num=10,
 ):
     page_count = doc.page_count
 
@@ -115,7 +117,7 @@ def _extract_images(
             if width / height > max_ratio or height / width > max_ratio:
                 continue
             suffix = str(datetime.datetime.now()).strip()
-            imgname = f'image{pno + 1}_{suffix}.{image["ext"]}'
+            imgname = f'figure{pno + 1}_{suffix}.{image["ext"]}'
             images.append(imgname)
             imgfile = os.path.join(imgname)
             fout = open(imgfile, "wb")
@@ -123,17 +125,33 @@ def _extract_images(
             fout.close()
             xreflist.append(xref)
 
-    logger.info(f"Successfully extract {len(xreflist)} images.")
+    logger.info(f"Successfully extract {len(images)} images.")
+    return images
+
+
+def _extract_tables(tmp_file_name):
+    tables = camelot.read_pdf(
+        tmp_file_name, pages="all", split_text=True, strip_text=" \n", line_scale=40
+    )
+    images = []
+    for i, table in enumerate(tables):
+        suffix = str(datetime.datetime.now()).strip()
+        imgname = f"table{i + 1}_{suffix}.png"
+        images.append(imgname)
+        dfi.export(table.df, imgname, table_conversion="matplotlib")
+    logger.info(f"Successfully extract {len(images)} tables.")
     return images
 
 
 def read(tmp_file_name):
     logger.info(f"Reading pdf text from {tmp_file_name}...")
     paper_text = ""
-    paper_images = []
+    paper_figures = []
     with fitz.open(tmp_file_name) as doc:
         paper_text = "".join([page.get_text() for page in doc]).strip()
-        paper_images = _extract_images(doc)
+        paper_figures = _extract_figures(doc)
+    paper_tables = _extract_tables(tmp_file_name)
+    paper_images = paper_figures + paper_tables
 
     # delete after refenrences
     reference_pos = max(
