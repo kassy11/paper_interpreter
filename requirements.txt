@@ -3,5 +3,6 @@ openai==0.28.1
 slack-bolt==1.18.0
 python-dotenv==1.00
 pymupdf==1.23.6
+camelot-py==0.11.0
 tiktoken==0.5.1
 logzero==1.7.0
