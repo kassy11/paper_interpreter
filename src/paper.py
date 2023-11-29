@@ -118,9 +118,8 @@ def _extract_images(
             suffix = str(datetime.datetime.now()).strip()
             imgname = f'image{pno + 1}_{suffix}.{image["ext"]}'
             image_save_path = os.path.join(tmp_folder_name, imgname)
-            fout = open(image_save_path, "wb")
-            fout.write(imgdata)
-            fout.close()
+            with open(image_save_path, "wb") as fout:
+                fout.write(imgdata)
             images.append(image_save_path)
             xreflist.append(xref)
 
