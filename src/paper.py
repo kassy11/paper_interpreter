@@ -3,7 +3,7 @@ import urllib.request
 from logzero import logger
 import fitz
 import mimetypes
-import datetime
+import uuid
 
 
 def _is_pdf(tmp_file_name, http_response_obj):
@@ -14,7 +14,7 @@ def _is_pdf(tmp_file_name, http_response_obj):
     return "application/pdf" in content_type or "application/pdf" in mimetype
 
 
-def download_pdf(url_dic, tmp_file_name, slack_bot_token):
+def download_pdf(url_dic, save_path, slack_bot_token):
     req = urllib.request.Request(url_dic["url"])
     if url_dic["is_slack_upload"]:
         req.add_header("Authorization", f"Bearer {slack_bot_token}")
@@ -22,12 +22,12 @@ def download_pdf(url_dic, tmp_file_name, slack_bot_token):
     logger.info(f'Downloading pdf from {url_dic["url"]}...')
     try:
         with urllib.request.urlopen(req) as web_file:
-            with open(tmp_file_name, "wb") as local_file:
+            with open(save_path, "wb") as local_file:
                 local_file.write(web_file.read())
 
-            if not _is_pdf(tmp_file_name, web_file):
+            if not _is_pdf(save_path, web_file):
                 logger.warn(f'Content-type of {url_dic["url"]} is not application/pdf.')
-                os.remove(tmp_file_name)
+                os.remove(save_path)
                 return False
     except Exception as e:
         logger.warning(f'Failed to download pdf from {url_dic["url"]}.')
@@ -80,6 +80,7 @@ def _recoverpix(doc, item):
 
 
 def _extract_images(
+    tmp_folder_name,
     doc,
     min_width=600,
     min_height=600,
@@ -114,26 +115,24 @@ def _extract_images(
 
             if width / height > max_ratio or height / width > max_ratio:
                 continue
-            suffix = str(datetime.datetime.now()).strip()
-            imgname = f'image{pno + 1}_{suffix}.{image["ext"]}'
-            images.append(imgname)
-            imgfile = os.path.join(imgname)
-            fout = open(imgfile, "wb")
-            fout.write(imgdata)
-            fout.close()
+            imgname = f'image{pno + 1}_{str(uuid.uuid4())}.{image["ext"]}'
+            image_save_path = os.path.join(tmp_folder_name, imgname)
+            with open(image_save_path, "wb") as fout:
+                fout.write(imgdata)
+            images.append(image_save_path)
             xreflist.append(xref)
 
     logger.info(f"Successfully extract {len(xreflist)} images.")
     return images
 
 
-def read(tmp_file_name):
+def read(tmp_folder_name, tmp_file_name):
     logger.info(f"Reading pdf text from {tmp_file_name}...")
     paper_text = ""
     paper_images = []
     with fitz.open(tmp_file_name) as doc:
         paper_text = "".join([page.get_text() for page in doc]).strip()
-        paper_images = _extract_images(doc)
+        paper_images = _extract_images(tmp_folder_name, doc)
 
     # delete after refenrences
     reference_pos = max(
