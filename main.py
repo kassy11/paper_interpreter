@@ -13,7 +13,7 @@ from src.bot import (
     SLACK_APP_TOKEN,
     respond,
 )
-import datetime
+import uuid
 
 app = App(token=SLACK_BOT_TOKEN)
 TMP_FOLDER_NAME = "tmp"
@@ -67,8 +67,9 @@ def respond_to_mention(event, say):
             print(f"Failed to make tmp folder: {e}")
 
     for url_dic in url_list:
-        prefix = str(datetime.datetime.now()).strip()
-        tmp_pdf_file_name = f'tmp_{prefix}_{os.path.basename(url_dic["url"])}'
+        tmp_pdf_file_name = (
+            f'paper_{str(uuid.uuid4())}_{os.path.basename(url_dic["url"])}'
+        )
         pdf_save_path = os.path.join(TMP_FOLDER_NAME, tmp_pdf_file_name)
         respond(
             say,

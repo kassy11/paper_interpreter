@@ -3,7 +3,7 @@ import urllib.request
 from logzero import logger
 import fitz
 import mimetypes
-import datetime
+import uuid
 
 
 def _is_pdf(tmp_file_name, http_response_obj):
@@ -115,8 +115,7 @@ def _extract_images(
 
             if width / height > max_ratio or height / width > max_ratio:
                 continue
-            suffix = str(datetime.datetime.now()).strip()
-            imgname = f'image{pno + 1}_{suffix}.{image["ext"]}'
+            imgname = f'image{pno + 1}_{str(uuid.uuid4())}.{image["ext"]}'
             image_save_path = os.path.join(tmp_folder_name, imgname)
             with open(image_save_path, "wb") as fout:
                 fout.write(imgdata)
