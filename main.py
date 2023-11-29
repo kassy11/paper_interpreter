@@ -16,6 +16,7 @@ from src.bot import (
 import datetime
 
 app = App(token=SLACK_BOT_TOKEN)
+TMP_FOLDER_NAME = "tmp"
 
 
 @app.event("message")
@@ -58,10 +59,17 @@ def respond_to_mention(event, say):
         )
 
     response = ""
-    paper_images = []
+    image_save_paths = []
+    if not os.path.exists(TMP_FOLDER_NAME):
+        try:
+            os.makedirs(TMP_FOLDER_NAME)
+        except Exception as e:
+            print(f"Failed to make tmp folder: {e}")
+
     for url_dic in url_list:
         prefix = str(datetime.datetime.now()).strip()
-        tmp_file_name = f'tmp_{prefix}_{os.path.basename(url_dic["url"])}'
+        tmp_pdf_file_name = f'tmp_{prefix}_{os.path.basename(url_dic["url"])}'
+        pdf_save_path = os.path.join(TMP_FOLDER_NAME, tmp_pdf_file_name)
         respond(
             say,
             user_id,
@@ -70,10 +78,10 @@ def respond_to_mention(event, say):
             text=f'{url_dic["url"]} から論文を読み取っています。',
         )
 
-        is_success = download_pdf(url_dic, tmp_file_name, SLACK_BOT_TOKEN)
+        is_success = download_pdf(url_dic, pdf_save_path, SLACK_BOT_TOKEN)
 
         if is_success:
-            paper_text, paper_images = read(tmp_file_name)
+            paper_text, image_save_paths = read(TMP_FOLDER_NAME, pdf_save_path)
             prompt = create_prompt(format_prompt, paper_text)
             respond(
                 say,
@@ -89,7 +97,7 @@ def respond_to_mention(event, say):
         else:
             response += f'{url_dic["url"]} から論文を読み取ることができませんでした。\n論文PDFのURLを指定してください。'
     respond(say, user_id, channel_id, thread_id, text=response)
-    if paper_images:
+    if image_save_paths:
         respond(
             say,
             user_id,
@@ -102,9 +110,9 @@ def respond_to_mention(event, say):
             user_id,
             channel_id,
             thread_id,
-            blocks=build_image_blocks(paper_images, channel_id, thread_id),
+            blocks=build_image_blocks(image_save_paths, channel_id, thread_id),
         )
-    remove_tmp_files(tmp_file_name, paper_images)
+    remove_tmp_files(pdf_save_path, image_save_paths)
     logger.info("Successfully send response.")
 
 

@@ -10,10 +10,10 @@ def load_env():
     load_dotenv(dotenv_path)
 
 
-def remove_tmp_files(pdf_file, images):
+def remove_tmp_files(pdf_file_path, image_file_paths):
     try:
-        os.remove(pdf_file)
-        for image in images:
+        os.remove(pdf_file_path)
+        for image in image_file_paths:
             os.remove(image)
     except OSError as e:
         logger.error(f"Failed to remove file: {e}")
