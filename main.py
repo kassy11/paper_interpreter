@@ -16,7 +16,7 @@ from src.bot import (
 import uuid
 
 app = App(token=SLACK_BOT_TOKEN)
-TMP_FOLDER_NAME = "tmp"
+TMP_FOLDER_NAME = "data"
 
 
 @app.event("message")
@@ -106,13 +106,16 @@ def respond_to_mention(event, say):
             thread_id,
             text="論文中の図表です。\n（うまく切り出せない場合もあります:man-bowing:）",
         )
-        respond(
-            say,
-            user_id,
-            channel_id,
-            thread_id,
-            blocks=build_image_blocks(image_save_paths, channel_id, thread_id),
-        )
+        try:
+            respond(
+                say,
+                user_id,
+                channel_id,
+                thread_id,
+                blocks=build_image_blocks(image_save_paths, channel_id, thread_id),
+            )
+        except Exception as e:
+            logger.warning(f"Exception: {e}")
     remove_tmp_files(pdf_save_path, image_save_paths)
     logger.info("Successfully send response.")
 

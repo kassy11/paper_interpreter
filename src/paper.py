@@ -94,12 +94,16 @@ def _extract_images(
     imglist = []
     images = []
     logger.info("Extracting images...")
+    is_max_num = False
     for pno in range(page_count):
-        if len(images) >= max_num:
+        if is_max_num:
             break
         il = doc.get_page_images(pno)
         imglist.extend([x[0] for x in il])
         for img in il:
+            if len(images) >= max_num:
+                is_max_num = True
+                break
             xref = img[0]
             if xref in xreflist:
                 continue
